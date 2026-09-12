@@ -34,6 +34,12 @@ test("campaign history keeps the funnel identifiers used by the dashboard", asyn
   });
   assert.notEqual(message.openedAt, undefined);
 });
+test("automatic campaign runs are marked for the results dashboard", async () => {
+  const e = setup();
+  const result = await new CampaignAgent(e, { apiKey: "" }).run({ automatic: true });
+  assert.equal(result.automatic, true);
+  assert.equal(e.snapshot().campaigns[0].automatic, true);
+});
 test("model output is bounded and cannot set commercial terms", async () => {
   const e = setup();
   let request;

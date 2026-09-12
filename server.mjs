@@ -18,10 +18,28 @@ try {
 const engine = new Engine();
 const agent = new CampaignAgent(engine);
 const snapshot = () => ({ ...engine.snapshot(), agent: agent.snapshot() });
+const automaticTriggers = new Set([
+  "occupancy",
+  "table",
+  "batch",
+  "buy",
+  "validate",
+  "advance",
+]);
 const startAutomaticCampaign = () => {
-  const state = engine.snapshot();
-  if (!agent.autoEnabled || agent.busy || !state.discount || !state.available)
+  let state = engine.snapshot();
+  if (!agent.autoEnabled || agent.busy || !state.discount)
     return false;
+  if (!state.available) {
+    try {
+      engine.command("batch");
+      state = engine.snapshot();
+    } catch (error) {
+      agent.recordAutoFailure(error);
+      return false;
+    }
+  }
+  if (!state.available) return false;
   agent.run({ automatic: true }).catch((error) => agent.recordAutoFailure(error));
   return true;
 };
@@ -166,7 +184,7 @@ const server = http.createServer(async (req, res) => {
       }
       const result = engine.command(type, payload);
       if (type === "reset") agent.reset();
-      if (type === "batch") startAutomaticCampaign();
+      if (automaticTriggers.has(type)) startAutomaticCampaign();
       return json(200, { ...result, state: snapshot() });
     }
     if (
