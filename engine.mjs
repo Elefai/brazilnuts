@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { seedCustomers } from "./agent.mjs";
+import { Analytics } from "./analytics.mjs";
 
 export const discountFor = (n) =>
   n >= 75 ? 0 : n >= 50 ? 20 : n >= 25 ? 35 : 50;
@@ -17,6 +18,7 @@ export class Engine {
     this.messages = [];
     this.stock = 0;
     this.version = randomUUID();
+    this.analytics = new Analytics(this.now(), this.metrics());
     this.log("Demo iniciada", "80 mesas ocupadas · nenhuma campanha ativa");
   }
   now() {
@@ -43,9 +45,11 @@ export class Engine {
   expire() {
     const before = this.metrics();
     let changed = false;
-    for (const c of this.coupons)
+    for (const c of [...this.coupons].sort((a, b) => a.expiresAt - b.expiresAt))
       if (c.status === "active" && this.now() >= c.expiresAt) {
         c.status = "expired";
+        this.analytics.record("expiration", c.expiresAt, { couponId: c.id });
+        this.analytics.record("state", c.expiresAt, this.metrics());
         changed = true;
         this.log(
           "Cupom expirado",
@@ -159,6 +163,7 @@ export class Engine {
         expiresAt: this.now() + 30 * 60 * 1000,
       };
       this.coupons.unshift(c);
+      this.analytics.record("purchase", c.createdAt, { couponId: c.id, customerId: c.customerId });
       this.stock--;
       this.log(
         "Compra confirmada",
@@ -179,6 +184,7 @@ export class Engine {
       c.status = "used";
       c.table = i + 1;
       this.tables[i] = true;
+      this.analytics.record("validation", this.now(), { couponId: c.id, customerId: c.customerId });
       this.log(
         "QR validado",
         `${c.customer} chegou · mesa ${i + 1} · ${c.discount}% preservados`,
@@ -190,6 +196,8 @@ export class Engine {
       this.log("Relógio avançado", `+${p.minutes} minutos`);
       return result;
     } else throw new Error("Comando desconhecido.");
+    if (["occupancy", "table", "buy", "validate"].includes(type))
+      this.analytics.record("state", this.now(), this.metrics());
     this.refresh(before, type === "batch");
     return result;
   }

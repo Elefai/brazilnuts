@@ -24,7 +24,17 @@ Abra http://localhost:3000. Para desenvolvimento, mantenha o servidor ligado e e
 6. Na recepção, simule a leitura do QR: a reserva vira comanda.
 7. Avance 30 minutos para expirar o outro cupom; reinicie para repetir.
 
-## Limites da demo
+## Resultados das campanhas
+
+Abra `/resultados` ou use **Resultados** na sidebar. A página abre em **Demonstração — 7 dias**, com sete campanhas fictícias e a mais recente destacando a evolução de **25% para 80%**: 100 convidados, 50 compras, 50 chegadas com voucher e 5 chegadas espontâneas. Os dados demonstrativos são derivados de eventos e não alteram o salão ou o histórico da sessão.
+
+Filtre por fonte, período, campanha e janela de 15, 30 ou 60 minutos. O dashboard mostra a ocupação antes do envio e no fim da janela, a média ponderada como contexto, compras, chegadas, conversão, uma curva de ocupação em degraus, barras com base zero e uma tabela comparativa das campanhas. Sem convidados, a conversão aparece como “Sem base”.
+
+O histórico começa com o servidor e é apagado no reset. Períodos sem 30 minutos registrados são identificados como parciais. Use os controles de relógio e o simulador para acompanhar os resultados; convites sozinhos não geram compras nem ocupação. Outras campanhas nas janelas são sinalizadas. A comparação temporal não comprova efeito exclusivo de uma campanha.
+
+`GET /api/analytics?source=demo|session&from=AAAA-MM-DD&to=AAAA-MM-DD&campaignId=...&window=15|30|60` retorna campanhas filtradas, seleção, cobertura, indicadores e série temporal. Parâmetros inválidos retornam 400; identificador inexistente retorna 404. Envios pausados ou descartados não criam registros de campanha.
+
+## Limites operacionais
 
 Dados, WhatsApp, pagamento e estorno são simulados. O QR é real, mas a leitura é acionada por botão ou código manual. Estado central em memória, reiniciado com o processo; servidor restrito ao computador local, sem autenticação e não adequado para exposição pública.
 

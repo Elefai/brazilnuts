@@ -1,0 +1,118 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { Engine } from "./engine.mjs";
+import { CampaignAgent } from "./agent.mjs";
+import { WINDOW_MS } from "./analytics.mjs";
+import { createDemoAnalytics } from "./demo-analytics.mjs";
+const minute = 60000;
+function setup() {
+  let now = 0;
+  const e = new Engine(() => now);
+  e.command("occupancy", { value: 20 });
+  e.command("batch");
+  const agent = new CampaignAgent(e, { apiKey: "" });
+  return { e, agent, at: value => { now = value; }, result: id => { e.expire(); return e.analytics.snapshot(e.now(), id); } };
+}
+function buy(e, customerId, key = crypto.randomUUID()) {
+  return e.command("buy", { customerId, key, version: e.version }).coupon;
+}
+test("time-weighted means, campaign sends alone do not change occupancy or purchases", async () => {
+  const { e, agent, at, result } = setup();
+  at(15 * minute); e.command("occupancy", { value: 40 });
+  at(WINDOW_MS); await agent.run();
+  let r = result();
+  assert.equal(r.before.occupied, 30);
+  assert.equal(r.after.occupied, null);
+  assert.equal(r.after.purchases, 0);
+  assert.equal(e.metrics().occupied, 40);
+  at(45 * minute); const c = buy(e, r.selected.customerIds[0]);
+  at(50 * minute); e.command("validate", { token: c.token });
+  at(60 * minute); r = result();
+  assert.equal(r.after.occupied, 40 + 1 / 3);
+  assert.equal(r.after.reserved, 1 / 6);
+  assert.equal(r.after.purchases, 1);
+  assert.equal(r.after.conversion, 20);
+  const frozen = r.after;
+  at(90 * minute); e.command("occupancy", { value: 70 });
+  assert.deepEqual(result().after, frozen);
+});
+test("partial history, no invite base, exact boundaries and duplicate purchases", async () => {
+  const { e, agent, at, result } = setup();
+  at(5 * minute); buy(e);
+  at(10 * minute); await agent.run();
+  const id = result().selected.customerIds[0];
+  buy(e, id, "repeat-key"); buy(e, id, "repeat-key");
+  let r = result();
+  assert.equal(r.before.coverage, 1 / 3);
+  assert.equal(r.before.purchases, 1);
+  assert.equal(r.before.conversion, null);
+  assert.equal(r.after.purchases, 1);
+  assert.equal(r.after.buyers, 1);
+  assert.equal(r.after.coverage, 0);
+  at(40 * minute); buy(e);
+  r = result();
+  assert.equal(r.after.purchases, 1);
+  assert.equal(r.after.coverage, 1);
+});
+test("expirations use deadlines across large clock jumps, once only", async () => {
+  const { e, agent, at, result } = setup();
+  buy(e);
+  at(10 * minute); buy(e);
+  at(20 * minute); await agent.run();
+  e.command("advance", { minutes: 30 });
+  const r = result();
+  assert.equal(r.after.reserved, 1);
+  assert.equal(r.before.reserved, 1.5);
+  assert.equal(e.metrics().reserved, 0);
+  const n = e.analytics.events.length;
+  result(); result();
+  assert.equal(e.analytics.events.length, n);
+});
+test("campaign selection, overlap warnings, reset and logs independent of analytics", async () => {
+  const { e, agent, at, result } = setup();
+  at(minute); await agent.run();
+  const first = result().selected.id;
+  at(2 * minute); await agent.run();
+  assert.equal(result().campaigns.length, 2);
+  assert.equal(result(first).selected.id, first);
+  assert.equal(result(first).overlaps.length, 1);
+  for (let i = 0; i < 80; i++) e.command("occupancy", { value: 20 });
+  assert.equal(e.events.length, 60);
+  assert.equal(result().campaigns.length, 2);
+  assert.equal(result("unknown"), null);
+  e.command("reset"); agent.reset();
+  assert.equal(result().selected, null);
+  assert.equal(result().campaigns.length, 0);
+  assert.equal(e.analytics.events.length, 1);
+});
+test("pause and stale inference do not register sends", async () => {
+  const { e, agent, result } = setup();
+  e.command("occupancy", { value: 80 }); await agent.run();
+  assert.equal(result().campaigns.length, 0);
+  e.command("occupancy", { value: 20 });
+  let done;
+  const slow = new CampaignAgent(e, { apiKey: "test", fetcher: () => new Promise(resolve => { done = resolve; }) });
+  const pending = slow.run();
+  e.command("reset"); done({ ok: false });
+  await assert.rejects(pending, /mudou/);
+  assert.equal(result().campaigns.length, 0);
+});
+test("seven-day demo filters campaigns and recomputes the selected window", () => {
+  const { analytics, now } = createDemoAnalytics(Date.parse("2026-09-12T22:00:00Z"));
+  const all = analytics.snapshot(now, null, { source: "demo", windowMinutes: 30 });
+  assert.equal(all.campaigns.length, 7);
+  assert.equal(all.availableRange.from, "2026-09-06");
+  assert.equal(all.availableRange.to, "2026-09-12");
+  assert.equal(all.initial, 25);
+  assert.equal(all.final, 80);
+  assert.equal(all.after.purchases, 50);
+  assert.equal(all.after.conversion, 50);
+  assert.equal(all.after.arrivals, 50);
+  const selected = all.campaigns[3];
+  const one = analytics.snapshot(now, selected.id, { source: "demo", windowMinutes: 15, from: "2026-09-09", to: "2026-09-09" });
+  assert.equal(one.campaigns.length, 1);
+  assert.equal(one.selected.id, selected.id);
+  assert.equal(one.windowMinutes, 15);
+  assert.equal(one.rows[0].purchases, one.after.purchases);
+  assert.equal(analytics.snapshot(now, "missing", { source: "demo", windowMinutes: 30 }), null);
+});

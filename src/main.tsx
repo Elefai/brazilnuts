@@ -17,6 +17,7 @@ import {
   Leaf,
   Radio,
   Pizza,
+  BarChart3,
 } from "lucide-react";
 import {
   Sidebar,
@@ -40,6 +41,7 @@ import { Slider } from "@/components/ui/slider";
 import "./index.css";
 import { CampaignPanel } from "./components/campaign-panel";
 import { MenuPage } from "./components/menu-page";
+import { ResultsPage } from "./components/results-page";
 
 const time = (n: number) =>
   new Date(n).toLocaleTimeString("pt-BR", {
@@ -47,12 +49,13 @@ const time = (n: number) =>
     minute: "2-digit",
   });
 function App() {
+  const results = window.location.pathname === "/resultados";
   const [s, setS] = useState<any>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
     [token, setToken] = useState(""),
-    [tab, setTab] = useState("Visão geral");
+    [tab, setTab] = useState(results ? "Resultados" : "Visão geral");
   const [draft, setDraft] = useState<number | null>(null),
     [quote, setQuote] = useState<any>(null);
   const [customerId, setCustomerId] = useState("demo-1");
@@ -77,6 +80,11 @@ function App() {
       clearInterval(id);
     };
   }, []);
+  const ready = Boolean(s);
+  useEffect(() => {
+    if (ready && !results && window.location.hash)
+      document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
+  }, [ready, results]);
   const command = async (type: string, p: any = {}) => {
     if (busyRef.current) return;
     busyRef.current = true;
@@ -132,6 +140,8 @@ function App() {
     if (eligible) setCustomerId(eligible.id);
   };
   const jump = (label: string, id: string) => {
+    if (id === "results") { window.location.assign("/resultados"); return; }
+    if (results) { window.location.assign(`/#${id}`); return; }
     setTab(label);
     document
       .getElementById(id)
@@ -164,6 +174,7 @@ function App() {
             <SidebarMenu>
               {[
                 [LayoutDashboard, "Visão geral", "overview"],
+                [BarChart3, "Resultados", "results"],
                 [Utensils, "Comandas", "floor"],
                 [Ticket, "Cupons e clientes", "reception"],
                 [Sparkles, "Assistente", "agent"],
@@ -207,7 +218,7 @@ function App() {
             <span className="divider" />
             <span>Workspace</span>
             <span>/</span>
-            <b>Visão geral</b>
+            <b>{results ? "Resultados" : "Visão geral"}</b>
           </div>
           <div className="topbar-actions">
             <Button asChild size="sm" variant="outline" className="menu-link">
@@ -220,7 +231,7 @@ function App() {
             </Badge>
           </div>
         </header>
-        <main id="overview" className="workspace">
+        {results ? <ResultsPage busy={busy} command={command} /> : <main id="overview" className="workspace">
           <div className="page-heading">
             <div>
               <p className="eyebrow">DO MOVIMENTO À OPORTUNIDADE</p>
@@ -710,7 +721,7 @@ function App() {
             BrazilNuts · AI Tinkerers Hackathon
             <span>Dados fictícios. WhatsApp e pagamento simulados.</span>
           </footer>
-        </main>
+        </main>}
         {error && (
           <div role="alert" className="toast" onClick={() => setError("")}>
             {error}

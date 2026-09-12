@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import QRCode from "qrcode";
 import { Engine } from "./engine.mjs";
 import { CampaignAgent } from "./agent.mjs";
+import { parseAnalyticsOptions } from "./analytics.mjs";
+import { createDemoAnalytics } from "./demo-analytics.mjs";
 try {
   process.loadEnvFile?.();
 } catch (e) {
@@ -10,6 +12,7 @@ try {
 }
 const engine = new Engine();
 const agent = new CampaignAgent(engine);
+const demo = createDemoAnalytics();
 const snapshot = () => ({ ...engine.snapshot(), agent: agent.snapshot() });
 const mime = {
   ".html": "text/html",
@@ -29,6 +32,13 @@ const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, "http://localhost");
     if (req.method === "GET" && url.pathname === "/api/state")
       return json(200, snapshot());
+    if (req.method === "GET" && url.pathname === "/api/analytics") {
+      const options = parseAnalyticsOptions(url.searchParams);
+      engine.expire();
+      const store = options.source === "demo" ? demo.analytics : engine.analytics;
+      const data = store.snapshot(options.source === "demo" ? demo.now : engine.now(), url.searchParams.get("campaignId"), options);
+      return data ? json(200, data) : json(404, { error: "Campanha não encontrada." });
+    }
     if (req.method === "GET" && url.pathname === "/api/qr") {
       const c = engine.coupons.find(
         (c) => c.token === url.searchParams.get("token"),
@@ -37,6 +47,9 @@ const server = http.createServer(async (req, res) => {
       const svg = await QRCode.toString(c.token, { type: "svg", margin: 1 });
       res.writeHead(200, { "Content-Type": "image/svg+xml" });
       return res.end(svg);
+    }
+    if (req.method === "GET" && url.pathname === "/favicon.ico") {
+      res.writeHead(204); return res.end();
     }
     if (req.method === "POST" && url.pathname === "/api/command") {
       if (
@@ -62,11 +75,12 @@ const server = http.createServer(async (req, res) => {
     if (
       req.method === "GET" &&
       (url.pathname === "/" ||
+        url.pathname === "/resultados" ||
         url.pathname === "/cardapio" ||
         /^\/assets\/[a-zA-Z0-9._-]+$/.test(url.pathname))
     ) {
       const file =
-        url.pathname === "/" || url.pathname === "/cardapio"
+        ["/", "/cardapio", "/resultados"].includes(url.pathname)
           ? "index.html"
           : url.pathname.slice(1);
       const contents = await readFile(
@@ -84,5 +98,5 @@ const server = http.createServer(async (req, res) => {
   }
 });
 server.listen(Number(process.env.PORT || 3000), "127.0.0.1", () =>
-  console.log("BrazilNuts: http://localhost:3000"),
+  console.log(`BrazilNuts: http://localhost:${server.address().port}`),
 );

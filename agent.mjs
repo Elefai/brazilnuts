@@ -185,19 +185,21 @@ export class CampaignAgent {
       // Generated copy is a suggestion; actual deliveries always use authoritative terms.
       const opening = decision.opening.slice(0, 220);
       const message = `Uma mesa te espera! Garanta ${context.discount}% OFF sobre até R$ 100 em itens elegíveis. Cupom por R$ 5, abatidos da conta. Chegue em até 30 minutos após comprar. Oferta sujeita à disponibilidade. Não cumulativo.`;
+      const sentAt = this.engine.now();
       if (send)
         for (const id of ids) {
           const c = this.engine.customers.find((c) => c.id === id);
-          c.lastContact = this.engine.now();
+          c.lastContact = sentAt;
           this.engine.messages.unshift({
             id: crypto.randomUUID(),
-            at: this.engine.now(),
+            at: sentAt,
             customerId: id,
             discount: context.discount,
             text: message,
             source: decision.source,
           });
         }
+      if (send) this.engine.analytics.campaign(sentAt, ids);
       this.engine.messages = this.engine.messages.slice(0, 100);
       this.last = {
         at: this.engine.now(),
