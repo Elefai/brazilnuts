@@ -189,6 +189,7 @@ export class CampaignAgent {
         throw new Error(
           "O salão mudou durante a análise. Execute o agente novamente.",
         );
+      if(automatic && !this.autoEnabled)throw new Error('Piloto automático desativado durante a análise.');
       const allowed = new Set(context.customers.map((c) => c.id));
       const ids = [...new Set(decision.customerIds)]
         .filter((id) => allowed.has(id))

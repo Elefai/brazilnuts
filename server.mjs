@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import QRCode from "qrcode";
 import { Engine } from "./engine.mjs";
 import { CampaignAgent } from "./agent.mjs";
+import { Concierge } from './concierge.mjs';
 import {
   MenuAgentError,
   agentConfiguration,
@@ -18,13 +19,9 @@ try {
 const engine = new Engine();
 const agent = new CampaignAgent(engine);
 const snapshot = () => ({ ...engine.snapshot(), agent: agent.snapshot() });
-const startAutomaticCampaign = () => {
-  const state = engine.snapshot();
-  if (!agent.autoEnabled || agent.busy || !state.discount || !state.available)
-    return false;
-  agent.run({ automatic: true }).catch((error) => agent.recordAutoFailure(error));
-  return true;
-};
+const concierge = new Concierge(engine,agent);
+const conciergeTimer=setInterval(()=>{concierge.tick().catch(error=>agent.recordAutoFailure(error));},1000);
+conciergeTimer.unref();
 const campaignRuns = new Map();
 const mime = {
   ".html": "text/html",
@@ -165,8 +162,7 @@ const server = http.createServer(async (req, res) => {
         return json(200, { state: snapshot() });
       }
       const result = engine.command(type, payload);
-      if (type === "reset") agent.reset();
-      if (type === "batch") startAutomaticCampaign();
+      if (type === "reset") {agent.reset();concierge.reset();}
       return json(200, { ...result, state: snapshot() });
     }
     if (

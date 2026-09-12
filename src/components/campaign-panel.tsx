@@ -80,9 +80,10 @@ export function CampaignPanel({
             </div>
             <div className="agent-disclaimer">
               {s.agent?.autoEnabled
-                ? "Ao liberar um lote, o agente analisa e dispara a campanha automaticamente."
+                ? "O concierge acompanha comandas, compras e expirações. Libera até 5 cupons e envia convites sozinho, com intervalo mínimo de 60 segundos entre campanhas."
                 : last?.notice || "Sem chave da API: seleção demonstrativa por proximidade."}
               <br />
+              {s.agent?.configured ? 'OpenAI configurada. ' : 'Sem chave: decisões demonstrativas por regras. '}
               Envios sempre simulados. Termos comerciais aplicados pelo sistema.
               Limite de um contato a cada 30 minutos por cliente.
             </div>
