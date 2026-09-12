@@ -180,6 +180,352 @@ p {
 small {
   font-size: 11px;
 }
+
+/* Public pizza menu */
+.menu-page {
+  min-height: 100vh;
+  background: #f7f8f5;
+  color: #24392e;
+}
+.menu-header {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 5vw;
+  background: #fffffff2;
+  border-bottom: 1px solid #e1e6de;
+  backdrop-filter: blur(12px);
+}
+.menu-brand {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  color: #24392e;
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -1px;
+  text-decoration: none;
+}
+.menu-brand > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 9px;
+  background: #234f3c;
+  color: #dcecc0;
+}
+.menu-brand sup {
+  align-self: flex-start;
+  margin-top: 2px;
+  font-size: 8px;
+}
+.menu-nav {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.menu-nav button,
+.category-filter button {
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #687a5c;
+  font-size: 12px;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+.menu-nav button:hover,
+.category-filter button:hover,
+.category-filter button.active {
+  background: #e7eddc;
+  color: #234f3c;
+}
+.menu-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #5e7162;
+  font-size: 11px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.menu-hero,
+.menu-catalog {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding-right: 5vw;
+  padding-left: 5vw;
+}
+.menu-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  align-items: center;
+  gap: clamp(32px, 7vw, 90px);
+  min-height: 470px;
+  padding-top: 65px;
+  padding-bottom: 65px;
+}
+.menu-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #789065;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.45px;
+}
+.menu-hero h1 {
+  max-width: 570px;
+  margin: 13px 0;
+  color: #234f3c;
+  font-size: clamp(38px, 5.5vw, 66px);
+  font-weight: 720;
+  line-height: 1.03;
+  letter-spacing: -2.6px;
+}
+.menu-intro {
+  max-width: 480px;
+  color: #687a5c;
+  font-size: 16px;
+  line-height: 1.7;
+}
+.menu-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin: 21px 0;
+  color: #687a5c;
+  font-size: 11px;
+}
+.menu-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.featured-pizza {
+  overflow: hidden;
+  border: 1px solid #dce6d3;
+  border-radius: 16px;
+  background: #f0f5ea;
+  box-shadow: 0 10px 35px #234f3c12;
+}
+.featured-pizza img {
+  display: block;
+  width: 100%;
+  height: 230px;
+  object-fit: cover;
+  background: #dfe8dc;
+}
+.featured-pizza > div {
+  padding: 21px 23px 23px;
+}
+.featured-pizza [data-slot="badge"],
+.pizza-image-wrap [data-slot="badge"] {
+  border-color: #b9cdae;
+  background: #e3eedb;
+  color: #315940;
+  font-size: 9px;
+}
+.featured-pizza h2 {
+  margin: 10px 0 5px;
+  color: #24392e;
+  font-size: 24px;
+  letter-spacing: -0.7px;
+}
+.featured-pizza p {
+  color: #687a5c;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.featured-pizza b {
+  display: block;
+  margin-top: 15px;
+  color: #234f3c;
+  font-size: 14px;
+}
+.menu-catalog {
+  padding-top: 62px;
+  padding-bottom: 82px;
+  border-top: 1px solid #e2e7de;
+}
+.menu-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 42px;
+}
+.menu-section-heading h2 {
+  margin-top: 7px;
+  color: #24392e;
+  font-size: 31px;
+  letter-spacing: -1.1px;
+}
+.category-filter {
+  display: flex;
+  max-width: 580px;
+  justify-content: flex-end;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.category-filter button.active {
+  background: #234f3c;
+  color: #fff;
+}
+.pizza-category + .pizza-category {
+  margin-top: 58px;
+}
+.category-title {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 20px;
+}
+.category-title > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 10px;
+  background: #e7eddc;
+  color: #537148;
+}
+.category-title h3 {
+  font-size: 21px;
+  letter-spacing: -0.5px;
+}
+.category-title p {
+  margin-top: 2px;
+  color: #7b8975;
+  font-size: 11px;
+}
+.pizza-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 17px;
+}
+.pizza-card {
+  overflow: hidden;
+  padding: 0 !important;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.pizza-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px #234f3c14;
+}
+.pizza-image-wrap {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  background: #dfe8dc;
+}
+.pizza-image-wrap img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 250ms ease;
+}
+.pizza-card:hover .pizza-image-wrap img {
+  transform: scale(1.04);
+}
+.pizza-image-wrap [data-slot="badge"] {
+  position: absolute;
+  top: 11px;
+  left: 11px;
+}
+.pizza-image-wrap [data-slot="badge"] + [data-slot="badge"] {
+  left: auto;
+  right: 11px;
+}
+.pizza-card [data-slot="card-content"] {
+  padding: 17px !important;
+}
+.pizza-card-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.pizza-card h4 {
+  color: #24392e;
+  font-size: 15px;
+  letter-spacing: -0.25px;
+}
+.pizza-card b {
+  flex-shrink: 0;
+  color: #315940;
+  font-size: 11px;
+}
+.pizza-card p {
+  min-height: 39px;
+  margin: 7px 0 12px;
+  color: #687a5c;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.pizza-card small {
+  color: #84917e;
+  font-size: 10px;
+}
+.menu-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  padding: 28px 5vw;
+  background: #234f3c;
+  color: #e7eddc;
+}
+.menu-footer .menu-brand { color: #fff; }
+.menu-footer .menu-brand > span { background: #dfe8dc; color: #234f3c; }
+.menu-footer p {
+  margin: 0;
+  color: #c5d2c2;
+  font-size: 11px;
+}
+.menu-footer > div:last-child {
+  display: flex;
+  gap: 13px;
+  color: #dce8d8;
+  font-size: 11px;
+}
+@media (max-width: 900px) {
+  .menu-header { gap: 15px; }
+  .menu-nav { justify-content: flex-start; }
+  .menu-back { display: none; }
+  .menu-hero { grid-template-columns: 1fr 0.8fr; gap: 35px; }
+  .pizza-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .menu-section-heading { align-items: start; flex-direction: column; }
+  .category-filter { max-width: 100%; justify-content: flex-start; }
+}
+@media (max-width: 620px) {
+  .menu-header { min-height: 60px; padding: 0 18px; }
+  .menu-brand { font-size: 18px; }
+  .menu-nav { display: none; }
+  .menu-hero, .menu-catalog { padding-right: 20px; padding-left: 20px; }
+  .menu-hero { grid-template-columns: 1fr; min-height: 0; padding-top: 43px; padding-bottom: 48px; }
+  .menu-hero h1 { font-size: 42px; letter-spacing: -1.8px; }
+  .menu-intro { font-size: 14px; }
+  .featured-pizza img { height: 205px; }
+  .menu-catalog { padding-top: 43px; }
+  .menu-section-heading { margin-bottom: 31px; }
+  .menu-section-heading h2 { font-size: 27px; }
+  .category-filter { width: calc(100% + 40px); margin: 0 -20px; padding: 0 20px 4px; }
+  .pizza-grid { grid-template-columns: 1fr; }
+  .pizza-image-wrap { height: 205px; }
+  .menu-footer { align-items: flex-start; flex-direction: column; padding: 28px 20px; }
+}
 [data-slot="sidebar-wrapper"] {
   background: #eef0eb;
 }
@@ -334,6 +680,15 @@ small {
   height: 6px;
   background: #689664;
   border-radius: 50%;
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.menu-link {
+  color: #315940;
+  font-size: 11px;
 }
 .workspace {
   padding: 30px;
@@ -1044,6 +1399,10 @@ footer {
   .live-badge {
     font-size: 9px;
   }
+  .menu-link {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
   .workspace {
     padding: 20px;
   }
@@ -1068,6 +1427,9 @@ footer {
     gap: 8px;
   }
   .topbar > div > span:not(.divider) {
+    display: none;
+  }
+  .topbar-actions .live-badge {
     display: none;
   }
   .floor-legend .ml-auto {

@@ -16,6 +16,7 @@ import {
   MessageCircle,
   Leaf,
   Radio,
+  Pizza,
 } from "lucide-react";
 import {
   Sidebar,
@@ -38,6 +39,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import "./index.css";
 import { CampaignPanel } from "./components/campaign-panel";
+import { MenuPage } from "./components/menu-page";
 
 const time = (n: number) =>
   new Date(n).toLocaleTimeString("pt-BR", {
@@ -207,9 +209,16 @@ function App() {
             <span>/</span>
             <b>Visão geral</b>
           </div>
-          <Badge variant="outline" className="live-badge">
-            <i /> Simulação ao vivo
-          </Badge>
+          <div className="topbar-actions">
+            <Button asChild size="sm" variant="outline" className="menu-link">
+              <a href="/cardapio">
+                <Pizza size={14} /> Ver cardápio
+              </a>
+            </Button>
+            <Badge variant="outline" className="live-badge">
+              <i /> Simulação ao vivo
+            </Badge>
+          </div>
         </header>
         <main id="overview" className="workspace">
           <div className="page-heading">
@@ -712,4 +721,6 @@ function App() {
     </SidebarProvider>
   );
 }
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  window.location.pathname === "/cardapio" ? <MenuPage /> : <App />,
+);

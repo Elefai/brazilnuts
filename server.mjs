@@ -61,9 +61,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (
       req.method === "GET" &&
-      (url.pathname === "/" || /^\/assets\/[a-zA-Z0-9._-]+$/.test(url.pathname))
+      (url.pathname === "/" ||
+        url.pathname === "/cardapio" ||
+        /^\/assets\/[a-zA-Z0-9._-]+$/.test(url.pathname))
     ) {
-      const file = url.pathname === "/" ? "index.html" : url.pathname.slice(1);
+      const file =
+        url.pathname === "/" || url.pathname === "/cardapio"
+          ? "index.html"
+          : url.pathname.slice(1);
       const contents = await readFile(
         new URL(`./dist/${file}`, import.meta.url),
       );

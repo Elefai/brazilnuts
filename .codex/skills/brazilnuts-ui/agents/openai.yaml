@@ -1,0 +1,4 @@
+interface:
+  display_name: "BrazilNuts UI"
+  short_description: "Manter o padrão visual das telas do BrazilNuts"
+  default_prompt: "Use $brazilnuts-ui para criar ou atualizar uma tela mantendo o padrão visual do BrazilNuts e consultando o MCP shadcn."
