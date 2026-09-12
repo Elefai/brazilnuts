@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import QRCode from "qrcode";
 import { Engine } from "./engine.mjs";
 import { CampaignAgent } from "./agent.mjs";
+import { automaticTriggers } from "./automation-policy.mjs";
 import {
   MenuAgentError,
   agentConfiguration,
@@ -18,14 +19,6 @@ try {
 const engine = new Engine();
 const agent = new CampaignAgent(engine);
 const snapshot = () => ({ ...engine.snapshot(), agent: agent.snapshot() });
-const automaticTriggers = new Set([
-  "occupancy",
-  "table",
-  "batch",
-  "buy",
-  "validate",
-  "advance",
-]);
 const startAutomaticCampaign = () => {
   let state = engine.snapshot();
   if (!agent.autoEnabled || agent.busy || !state.discount)

@@ -19,7 +19,7 @@ import {
   LoaderCircle,
   RefreshCw,
   BarChart3,
-  Play,
+  Volume2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -44,6 +44,7 @@ import "./index.css";
 import { CampaignPanel } from "./components/campaign-panel";
 import { CampaignInsights } from "./components/campaign-insights";
 import { VoiceSimulator } from "./components/voice-simulator";
+import { DemoJourney } from "./components/demo-journey";
 
 const time = (n: number) =>
   new Date(n).toLocaleTimeString("pt-BR", {
@@ -154,6 +155,15 @@ function App() {
     setTab(label);
     document
       .getElementById(id)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const selectCustomer = (id: string) => {
+    setCustomerId(id);
+    setSelected(null);
+    setQuote(null);
+    keyRef.current = crypto.randomUUID();
+    document
+      .querySelector(".client-card")
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   const pollCampaign = async (runId: string, attempt = 0) => {
@@ -290,14 +300,6 @@ function App() {
               <div>
                 <Button
                   size="sm"
-                  className="demo-start"
-                  disabled={busy}
-                  onClick={startDemo}
-                >
-                  <Play size={13} /> Iniciar missão
-                </Button>
-                <Button
-                  size="sm"
                   variant="outline"
                   disabled={busy}
                   onClick={() => command("advance", { minutes: 5 })}
@@ -328,6 +330,14 @@ function App() {
               </div>
             </div>
           </div>
+          <DemoJourney
+            state={s}
+            busy={busy}
+            start={startDemo}
+            showCustomer={selectCustomer}
+            showReception={() => jump("Cupons e clientes", "reception")}
+            showResults={() => jump("Resultados", "results")}
+          />
           <div className="metrics">
             {[
               [Utensils, "Mesas ocupadas", s.occupied, "de 100 mesas no salão"],
@@ -791,15 +801,7 @@ function App() {
               toggleAuto={() =>
                 command("agent-auto", { enabled: !s.agent?.autoEnabled })
               }
-              select={(id) => {
-                setCustomerId(id);
-                setSelected(null);
-                setQuote(null);
-                keyRef.current = crypto.randomUUID();
-                document
-                  .querySelector(".client-card")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
+              select={selectCustomer}
             />
             <Card id="exa-agent" className="agent-card">
               <CardContent>
@@ -817,7 +819,7 @@ function App() {
                 </div>
                 {agent.status === "completed" && agent.campaign ? (
                   <div className="agent-result" aria-live="polite">
-                    <span className="agent-result-label">MENSAGEM SUGERIDA</span>
+                    <span className="agent-result-label">RASCUNHO PARA A PRÓXIMA CONVERSA</span>
                     <p className="agent-message">{agent.campaign.whatsapp_message}</p>
                     <p className="agent-note">{agent.campaign.operator_note}</p>
                     {agent.campaign.menu_highlights?.length > 0 && (
@@ -838,6 +840,14 @@ function App() {
                         ))}
                       </div>
                     )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="agent-voice-link"
+                      onClick={() => jump("Resultados", "voice")}
+                    >
+                      <Volume2 size={14} /> Testar recomendação por voz
+                    </Button>
                   </div>
                 ) : (
                   <>

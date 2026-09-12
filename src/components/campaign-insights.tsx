@@ -45,6 +45,7 @@ export function CampaignInsights({ state }: { state: any }) {
     }),
   );
   const last = campaigns.at(-1);
+  const current = last ? campaignStats(last, state) : null;
 
   return (
     <Card id="results" className="insights-card">
@@ -70,6 +71,19 @@ export function CampaignInsights({ state }: { state: any }) {
           </div>
         ) : (
           <>
+            {last && current && (
+              <div className="campaign-current">
+                <span>RODADA EM FOCO</span>
+                <b>
+                  {last.automatic
+                    ? "O piloto automático acabou de agir."
+                    : "A campanha foi acionada manualmente."}
+                </b>
+                <p>
+                  {current.sent} convites → {current.opened} aberturas → {current.purchased} compras → {current.arrived} chegadas
+                </p>
+              </div>
+            )}
             <div className="funnel-metrics">
               <div>
                 <span><Send size={13} /> Convites</span>

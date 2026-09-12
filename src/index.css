@@ -614,6 +614,111 @@ h1 {
   color: #899084;
   margin-top: 4px;
 }
+.demo-journey {
+  margin: 0 0 24px;
+  background: #fbfcf9 !important;
+  border-color: #dce6d5 !important;
+}
+.demo-journey-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.demo-journey-heading > div > span {
+  display: block;
+  color: #71886a;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.15px;
+}
+.demo-journey-heading h2 {
+  margin-top: 5px;
+  color: #2e4c35;
+  font-size: 18px;
+}
+.demo-journey-heading p {
+  margin-top: 5px;
+  color: #798978;
+  font-size: 11px;
+}
+.demo-journey-action {
+  min-height: 40px;
+  flex: 0 0 auto;
+  box-shadow: 0 1px 3px #234f3c24;
+}
+.demo-journey-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.demo-journey-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #e2e8dd;
+  border-radius: 8px;
+  background: #fff;
+}
+.demo-journey-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #edf1e9;
+  color: #82917d;
+}
+.demo-journey-step > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.demo-journey-step small {
+  color: #98a492;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+.demo-journey-step b {
+  overflow: hidden;
+  color: #5f705f;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.demo-journey-step em {
+  overflow: hidden;
+  color: #909b8b;
+  font-size: 9px;
+  font-style: normal;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.demo-journey-step.active {
+  border-color: #9ab588;
+  background: #edf4e8;
+}
+.demo-journey-step.active .demo-journey-icon {
+  background: #234f3c;
+  color: #fff;
+}
+.demo-journey-step.active b {
+  color: #35543c;
+}
+.demo-journey-step.done {
+  border-color: #d2e0c8;
+  background: #f4f8f0;
+}
+.demo-journey-step.done .demo-journey-icon {
+  background: #7ba06a;
+  color: #fff;
+}
 .time-controls {
   display: flex;
   flex-direction: column;
@@ -638,15 +743,6 @@ h1 {
 .time-controls button {
   height: 29px;
   font-size: 10px;
-}
-.time-controls .demo-start {
-  border-color: #234f3c;
-  background: #234f3c;
-  color: #eff7e8;
-  box-shadow: 0 2px 8px #234f3c22;
-}
-.time-controls .demo-start:hover:not(:disabled) {
-  background: #1d4432;
 }
 .metrics {
   display: grid;
@@ -727,6 +823,28 @@ h1 {
   margin-top: 4px;
   color: #87937e;
   font-size: 11px;
+}
+.campaign-current {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-left: 3px solid #668f62;
+  background: #eef4e9;
+}
+.campaign-current > span {
+  color: #75906f;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.campaign-current b {
+  color: #3f593f;
+  font-size: 12px;
+}
+.campaign-current p {
+  color: #71816d;
+  font-size: 10px;
 }
 .funnel-metrics {
   display: grid;
@@ -920,7 +1038,7 @@ h1 {
   margin-top: 16px;
 }
 .voice-prompts button {
-  min-height: 32px;
+  min-height: 40px;
   padding: 8px 12px;
   border: 1px solid #d2dfc8;
   border-radius: 8px;
@@ -928,6 +1046,9 @@ h1 {
   color: #63755e;
   font-size: 10px;
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.voice-prompts button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 .voice-prompts button:hover:not(:disabled),
 .voice-prompts button.active {
@@ -993,16 +1114,16 @@ h1 {
 .voice-manual input {
   min-width: 0;
   flex: 1;
-  height: 36px;
+  height: 40px;
   font-size: 10px;
 }
 .voice-manual button {
-  height: 36px;
+  height: 40px;
   font-size: 10px;
 }
 .voice-run {
   width: 100%;
-  min-height: 40px;
+  min-height: 44px;
   margin-top: 8px;
   border-color: #b8cbae !important;
   color: #3f653f !important;
@@ -1556,6 +1677,13 @@ h2 {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+.agent-voice-link {
+  width: 100%;
+  min-height: 40px;
+  border-color: #b8cbae !important;
+  color: #3f653f !important;
+  font-size: 10px;
+}
 .agent-config {
   color: #8b7a4c !important;
   margin-top: 12px !important;
@@ -1686,6 +1814,9 @@ footer {
   }
 }
 @media (max-width: 900px) {
+  .demo-journey-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .main-grid {
     grid-template-columns: 1fr;
   }
@@ -1721,6 +1852,16 @@ footer {
   }
 }
 @media (max-width: 480px) {
+  .demo-journey-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .demo-journey-action {
+    width: 100%;
+  }
+  .demo-journey-steps {
+    grid-template-columns: 1fr;
+  }
   .page-heading {
     flex-direction: column;
   }

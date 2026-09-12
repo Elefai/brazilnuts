@@ -29,11 +29,13 @@ Não comece pelo painel do agente ou pelas variáveis da Exa. Mostre primeiro o 
 
 ### 0:20 — Acione a missão
 
-Clique em **Iniciar missão** no canto superior direito. Esse botão garante que o piloto esteja ativo e leva a ocupação para 23 mesas.
+Clique em **Iniciar missão** no cartão **Rota guiada da demo**. Esse botão garante que o piloto esteja ativo e leva a ocupação para 23 mesas.
 
 Enquanto a tela atualiza, narre:
 
 > “Uma queda de movimento virou um sinal operacional. O agente não espera alguém abrir um chat: ele observa o evento do salão.”
+
+O cartão de rota deixa clara a progressão da história: **Sinal do salão → Convite certo → Decisão no celular → Chegada e resultado**. Enquanto o botão mostra **Agente preparando convites**, diga que a seleção está acontecendo sem abrir outra janela de chat.
 
 No cartão **Agente de campanhas**, a visualização deve passar por:
 
@@ -61,17 +63,7 @@ Clique em **Aceitar e pagar R$ 5 (simulado)**. Mostre o QR e, se houver tempo, c
 
 O ponto é mostrar a sequência completa: convite → compra → reserva → chegada. Não descreva isso como pagamento real; é uma transação fictícia da demo.
 
-### 1:55 — Dê voz ao cliente
-
-Na área **Resultados**, use **Conversa por voz**. Primeiro clique em uma intenção pronta para garantir o ritmo; em seguida, se o navegador permitir, clique no microfone e diga:
-
-> “O que combina com o meu gosto?”
-
-O componente tenta `SpeechRecognition`/`webkitSpeechRecognition` em `pt-BR` e lê a resposta no navegador. Se o microfone não estiver disponível, digite a mesma frase no campo de fallback. Explique:
-
-> “A voz é a interface do cliente, não outro painel de backoffice. A resposta usa o estado da oferta e, quando disponível, os destaques do cardápio.”
-
-### 2:25 — Traga o contexto do cardápio com Exa
+### 1:55 — Traga o contexto do cardápio com Exa
 
 No cartão **Assistente de cardápio**, clique em **Gerar com agente Exa** (ou **Simular resposta do agente** no modo mock).
 
@@ -79,9 +71,19 @@ Narre:
 
 > “Agora a mensagem deixa de ser genérica. O agente consulta o cardápio do backend, organiza os itens e sugere uma abordagem ancorada nos pratos reais. Exa ajuda com contexto e grounding; as regras comerciais continuam no nosso motor.”
 
-Mostre a mensagem sugerida, os destaques de menu e, se a execução for real, as fontes retornadas. Não afirme que a Exa controla estoque, preço ou envio: ela sugere conteúdo; o sistema determinístico aplica os termos.
+Mostre o **Rascunho para a próxima conversa**, os destaques de menu e, se a execução for real, as fontes retornadas. Não afirme que a Exa controla estoque, preço ou envio: ela sugere conteúdo; o sistema determinístico aplica os termos. Em seguida, clique em **Testar recomendação por voz**.
 
-### 2:50 — Termine com evidência
+### 2:20 — Dê voz ao cliente
+
+Na área **Resultados**, use **Conversa por voz** e clique diretamente em:
+
+> “O que combina com o meu gosto?”
+
+O chip já dispara a simulação; não é preciso selecionar e clicar em outro botão. A resposta usa os destaques recém-gerados pela Exa. Se quiser testar a interação real, clique no microfone e diga a mesma frase; se a permissão ou a API não estiverem disponíveis, o chip e o campo de texto preservam a demonstração. Explique:
+
+> “A voz é a interface do cliente, não outro painel de backoffice. A resposta combina o estado da oferta com o contexto do cardápio.”
+
+### 2:45 — Termine com evidência
 
 Aponte para **Evolução da campanha**:
 
@@ -132,11 +134,11 @@ Use Chrome ou outro navegador com `SpeechRecognition`, permita o microfone para 
 
 | Momento visível | Implementação que sustenta a cena |
 | --- | --- |
-| **Iniciar missão** | `POST /api/command` com `agent-auto` e `occupancy`; o servidor reage a eventos do salão. |
+| **Rota guiada / Iniciar missão** | `POST /api/command` com `agent-auto` e `occupancy`; o servidor reage a sinais materiais do salão. |
 | Piloto em vigília/missão | `CampaignAgent` mantém estado de execução, decisão, erro e último envio. |
 | Lote e campanha automáticos | A camada `Engine` registra lote, mensagens e `campaigns[].automatic`; não há envio real. |
 | WhatsApp simulado | A notificação, janela de 30 segundos, compra fictícia e QR são estados do motor. |
-| Voz | `SpeechRecognition`/`webkitSpeechRecognition` + `SpeechSynthesis` no navegador, com fallback digitado. |
+| Voz | Cada intenção pronta dispara a simulação; `SpeechRecognition`/`webkitSpeechRecognition` e `SpeechSynthesis` continuam opcionais, com fallback digitado. |
 | Cardápio contextual | `MENU_BACKEND_URL` alimenta `input.data` do Agent API da Exa; o resultado é consultado por polling. |
 | Prova de resultado | O dashboard agrega a evolução por campanha: enviados, abertos, comprados e chegadas. |
 
@@ -169,6 +171,6 @@ Use Chrome ou outro navegador com `SpeechRecognition`, permita o microfone para 
 ## Reinício rápido entre apresentações
 
 1. Clique no ícone de reiniciar no topo.
-2. Clique em **Iniciar missão**.
+2. Clique em **Iniciar missão** na rota guiada.
 3. Espere a missão concluir e selecione um cliente convidado.
 4. Se a tela ficar com um cupom antigo, use **Reiniciar** novamente; todo o estado fica em memória e é recriado pelo processo.

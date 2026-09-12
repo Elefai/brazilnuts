@@ -150,7 +150,9 @@ export function VoiceSimulator({
   );
 
   const startListening = () => {
+    if (listening) return;
     setVoiceError("");
+    setSimulating(false);
     if (!recognitionRef.current) {
       setVoiceError("Este navegador não oferece reconhecimento de fala. Use a simulação ou digite sua pergunta.");
       return;
@@ -163,7 +165,7 @@ export function VoiceSimulator({
   };
 
   const simulateVoice = (intent = prompt) => {
-    if (listening) return;
+    if (listening || simulationTimerRef.current !== null) return;
     setVoiceError("");
     setSelected(intent.id);
     setSimulating(true);
@@ -174,7 +176,7 @@ export function VoiceSimulator({
       simulationTimerRef.current = null;
       setSimulating(false);
       setListening(false);
-    }, 650);
+    }, 420);
   };
 
   const submitManualText = () => {
@@ -182,7 +184,7 @@ export function VoiceSimulator({
   };
 
   return (
-    <Card className="voice-card">
+    <Card id="voice" className="voice-card">
       <CardContent>
         <div className="panel-title">
           <div>
@@ -190,29 +192,50 @@ export function VoiceSimulator({
             <p>Teste a interação pelo ponto de vista do cliente.</p>
           </div>
           <Badge variant="outline">
-            {supportsSpeech ? "Microfone disponível" : "Simulador local"}
+            {supportsSpeech ? "Reconhecimento compatível" : "Simulação sem microfone"}
           </Badge>
         </div>
         <div className="voice-stage">
           <button
+            type="button"
             className={`voice-orb ${listening ? "listening" : ""}`}
             onClick={startListening}
-            aria-label={listening ? "Ouvindo cliente" : "Falar com o cliente"}
+            aria-label={
+              simulating
+                ? "Simulando fala do cliente"
+                : listening
+                  ? "Ouvindo cliente"
+                  : "Falar com o cliente"
+            }
             disabled={listening}
           >
             <Mic size={23} />
           </button>
           <div>
-            <b>{listening ? "Ouvindo o cliente…" : "Pronto para ouvir"}</b>
-            <p>{listening ? "Fale agora em português" : "Toque no microfone ou escolha uma intenção."}</p>
+            <b>
+              {simulating
+                ? "Simulando a fala do cliente…"
+                : listening
+                  ? "Ouvindo o cliente…"
+                  : "Pronto para ouvir"}
+            </b>
+            <p>
+              {simulating
+                ? "Interpretando a intenção escolhida."
+                : listening
+                  ? "Fale agora em português"
+                  : "Toque no microfone para testar ou em uma intenção para executá-la."}
+            </p>
           </div>
         </div>
         <div className="voice-prompts" aria-label="Intenções do cliente">
           {prompts.map((item) => (
             <button
+              type="button"
               key={item.id}
               className={selected === item.id ? "active" : ""}
-              onClick={() => setSelected(item.id)}
+              onClick={() => simulateVoice(item)}
+              aria-pressed={selected === item.id}
               disabled={listening}
             >
               {item.text}
@@ -248,8 +271,13 @@ export function VoiceSimulator({
             Enviar
           </Button>
         </div>
-        <Button className="voice-run" variant="outline" onClick={simulateVoice} disabled={listening}>
-          <Sparkles size={15} /> {listening ? "Ouvindo…" : "Simular intenção pronta"}
+        <Button
+          className="voice-run"
+          variant="outline"
+          onClick={() => simulateVoice()}
+          disabled={listening}
+        >
+          <Sparkles size={15} /> {simulating ? "Simulando…" : listening ? "Ouvindo…" : "Repetir intenção selecionada"}
         </Button>
       </CardContent>
     </Card>
