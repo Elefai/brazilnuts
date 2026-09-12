@@ -1,4 +1,4 @@
-import { Sparkles, Send, Users } from "lucide-react";
+import { Bot, Sparkles, Send, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,11 +6,13 @@ export function CampaignPanel({
   state: s,
   busy,
   run,
+  toggleAuto,
   select,
 }: {
   state: any;
   busy: boolean;
   run: () => void;
+  toggleAuto: () => void;
   select: (id: string) => void;
 }) {
   const last = s.agent?.last;
@@ -27,11 +29,7 @@ export function CampaignPanel({
             </p>
           </div>
           <Badge variant="outline">
-            {last?.source === "openai"
-              ? "Última decisão: IA real"
-              : s.agent?.configured
-                ? "OpenAI configurada"
-                : "Modo demonstrativo"}
+            <Bot size={12} /> {s.agent?.autoEnabled ? "Piloto automático" : "Manual"}
           </Badge>
         </div>
         <div className="campaign-columns">
@@ -66,17 +64,31 @@ export function CampaignPanel({
                 )}
               </>
             )}
-            <Button disabled={busy || s.agent?.busy} onClick={run}>
-              <Send size={14} />
-              {busy ? "Analisando…" : "Analisar e executar campanha"}
-            </Button>
+            <div className="agent-actions">
+              <Button disabled={busy || s.agent?.busy} onClick={run}>
+                <Send size={14} />
+                {s.agent?.busy ? "Analisando…" : "Executar agora"}
+              </Button>
+              <Button
+                variant="outline"
+                disabled={busy || s.agent?.busy}
+                onClick={toggleAuto}
+              >
+                <Bot size={14} />
+                {s.agent?.autoEnabled ? "Desativar piloto" : "Ativar piloto"}
+              </Button>
+            </div>
             <div className="agent-disclaimer">
-              {last?.notice ||
-                "Sem chave da API: seleção demonstrativa por proximidade."}
+              {s.agent?.autoEnabled
+                ? "Ao liberar um lote, o agente analisa e dispara a campanha automaticamente."
+                : last?.notice || "Sem chave da API: seleção demonstrativa por proximidade."}
               <br />
               Envios sempre simulados. Termos comerciais aplicados pelo sistema.
               Limite de um contato a cada 30 minutos por cliente.
             </div>
+            {s.agent?.autoError && (
+              <p className="agent-auto-error" role="alert">{s.agent.autoError}</p>
+            )}
           </div>
           <div>
             <h3 className="customer-base-title">

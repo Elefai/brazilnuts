@@ -15,6 +15,7 @@ export class Engine {
     this.customers = seedCustomers();
     this.events = [];
     this.messages = [];
+    this.campaigns = [];
     this.stock = 0;
     this.version = randomUUID();
     this.log("Demo iniciada", "80 mesas ocupadas · nenhuma campanha ativa");
@@ -25,6 +26,28 @@ export class Engine {
   log(title, detail) {
     this.events.unshift({ id: randomUUID(), at: this.now(), title, detail });
     this.events = this.events.slice(0, 60);
+  }
+  recordCampaign({
+    action,
+    source,
+    reason,
+    customerIds = [],
+    messageIds = [],
+    automatic = false,
+  }) {
+    const campaign = {
+      id: randomUUID(),
+      at: this.now(),
+      action: action === "send" ? "send" : "pause",
+      source: typeof source === "string" ? source.slice(0, 40) : "demo",
+      reason: typeof reason === "string" ? reason.slice(0, 600) : "",
+      automatic: Boolean(automatic),
+      customerIds: [...new Set(customerIds.filter((id) => typeof id === "string"))],
+      messageIds: [...new Set(messageIds.filter((id) => typeof id === "string"))],
+    };
+    this.campaigns.push(campaign);
+    this.campaigns = this.campaigns.slice(-12);
+    return campaign;
   }
   metrics() {
     const occupied = this.tables.filter(Boolean).length,
@@ -83,6 +106,7 @@ export class Engine {
       customers: this.customers,
       events: this.events,
       messages: this.messages,
+      campaigns: this.campaigns,
       stock: this.stock,
       version: this.version,
       ...this.metrics(),

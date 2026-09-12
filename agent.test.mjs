@@ -20,6 +20,20 @@ test("demo sends to eligible customers only and respects cooldown", async () => 
   assert.equal(e.coupons.length, 0);
   assert.equal(e.stock, 5);
 });
+test("campaign history keeps the funnel identifiers used by the dashboard", async () => {
+  const e = setup(),
+    result = await new CampaignAgent(e, { apiKey: "" }).run(),
+    campaign = e.snapshot().campaigns[0];
+  assert.equal(campaign.action, "send");
+  assert.deepEqual(campaign.customerIds, result.customerIds);
+  assert.equal(campaign.messageIds.length, result.customerIds.length);
+  const message = e.messages.find((item) => item.id === campaign.messageIds[0]);
+  e.command("open-notification", {
+    messageId: message.id,
+    customerId: message.customerId,
+  });
+  assert.notEqual(message.openedAt, undefined);
+});
 test("model output is bounded and cannot set commercial terms", async () => {
   const e = setup();
   let request;

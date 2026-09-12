@@ -1,8 +1,15 @@
 import http from "node:http";
 import { readFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import QRCode from "qrcode";
 import { Engine } from "./engine.mjs";
 import { CampaignAgent } from "./agent.mjs";
+import {
+  MenuAgentError,
+  agentConfiguration,
+  readCampaignRun,
+  startCampaignRun,
+} from "./menu-agent.mjs";
 try {
   process.loadEnvFile?.();
 } catch (e) {
@@ -11,6 +18,14 @@ try {
 const engine = new Engine();
 const agent = new CampaignAgent(engine);
 const snapshot = () => ({ ...engine.snapshot(), agent: agent.snapshot() });
+const startAutomaticCampaign = () => {
+  const state = engine.snapshot();
+  if (!agent.autoEnabled || agent.busy || !state.discount || !state.available)
+    return false;
+  agent.run({ automatic: true }).catch((error) => agent.recordAutoFailure(error));
+  return true;
+};
+const campaignRuns = new Map();
 const mime = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -29,6 +44,94 @@ const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, "http://localhost");
     if (req.method === "GET" && url.pathname === "/api/state")
       return json(200, snapshot());
+    if (req.method === "GET" && url.pathname === "/api/agent/config")
+      return json(200, agentConfiguration());
+    if (req.method === "GET" && url.pathname === "/api/mock/menu")
+      return json(200, {
+        store: { name: "Casa da Castanha" },
+        data: [
+          {
+            name: "Pratos",
+            products: [
+              { name: "Bowl Brasil", price: 32.9, description: "Arroz, legumes assados e castanha-do-pará." },
+              { name: "Moqueca vegetal", price: 38.5, description: "Banana-da-terra, pimentões e leite de coco." },
+            ],
+          },
+          {
+            name: "Bebidas",
+            products: [
+              { name: "Suco de caju", price: 12, description: "Suco natural gelado." },
+              { name: "Chá mate da casa", price: 9.5, description: "Chá mate com limão." },
+            ],
+          },
+        ],
+      });
+    if (req.method === "POST" && url.pathname === "/api/agent/campaign") {
+      if (
+        req.headers.origin &&
+        req.headers.origin !== `http://${req.headers.host}`
+      )
+        return json(403, { error: "Origem inválida" });
+      const snapshot = engine.snapshot();
+      const run = await startCampaignRun({
+        offer: {
+          discount_percent: snapshot.discount,
+          coupons_available: snapshot.available,
+          offer_paused: snapshot.discount === 0 || snapshot.available === 0,
+          arrival_minutes: 30,
+          coupon_price_brl: 5,
+          discount_limit_brl: 100,
+        },
+      });
+      const id = randomUUID();
+      campaignRuns.set(id, {
+        exaRunId: run.exaRunId,
+        status: run.status,
+        catalog: {
+          restaurant_name: run.catalog.restaurant_name,
+          item_count: run.catalog.item_count,
+        },
+        mockCampaign: run.mockCampaign || null,
+        createdAt: Date.now(),
+      });
+      return json(202, {
+        run_id: id,
+        status: run.status,
+        catalog: campaignRuns.get(id).catalog,
+      });
+    }
+    const campaignRunMatch = /^\/api\/agent\/runs\/([0-9a-f-]{36})$/.exec(
+      url.pathname,
+    );
+    if (req.method === "GET" && campaignRunMatch) {
+      const id = campaignRunMatch[1];
+      const localRun = campaignRuns.get(id);
+      if (!localRun) return json(404, { error: "Execução não encontrada." });
+      if (!localRun.terminal) {
+        if (localRun.mockCampaign) {
+          Object.assign(localRun, {
+            status: "completed",
+            terminal: true,
+            campaign: localRun.mockCampaign,
+            sources: [],
+            costDollars: null,
+          });
+        } else {
+          const remoteRun = await readCampaignRun({ exaRunId: localRun.exaRunId });
+          Object.assign(localRun, remoteRun, { checkedAt: Date.now() });
+        }
+      }
+      return json(200, {
+        run_id: id,
+        status: localRun.status,
+        terminal: Boolean(localRun.terminal),
+        catalog: localRun.catalog,
+        campaign: localRun.campaign,
+        sources: localRun.sources || [],
+        cost_dollars: localRun.costDollars ?? null,
+        error: localRun.error,
+      });
+    }
     if (req.method === "GET" && url.pathname === "/api/qr") {
       const c = engine.coupons.find(
         (c) => c.token === url.searchParams.get("token"),
@@ -55,8 +158,15 @@ const server = http.createServer(async (req, res) => {
         const decision = await agent.run();
         return json(200, { decision, state: snapshot() });
       }
+      if (type === "agent-auto") {
+        if (typeof payload.enabled !== "boolean")
+          throw new Error("Estado do piloto automático inválido.");
+        agent.setAutomatic(payload.enabled);
+        return json(200, { state: snapshot() });
+      }
       const result = engine.command(type, payload);
       if (type === "reset") agent.reset();
+      if (type === "batch") startAutomaticCampaign();
       return json(200, { ...result, state: snapshot() });
     }
     if (
@@ -75,9 +185,11 @@ const server = http.createServer(async (req, res) => {
     }
     json(404, { error: "Não encontrado" });
   } catch (e) {
-    json(400, { error: e.message });
+    const status = e instanceof MenuAgentError ? e.status : 400;
+    json(status, { error: e.message || "Não foi possível processar a requisição." });
   }
 });
-server.listen(Number(process.env.PORT || 3000), "127.0.0.1", () =>
-  console.log("BrazilNuts: http://localhost:3000"),
+const port = Number(process.env.PORT || 3000);
+server.listen(port, "127.0.0.1", () =>
+  console.log(`BrazilNuts: http://localhost:${port}`),
 );
