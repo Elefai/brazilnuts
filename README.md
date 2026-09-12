@@ -16,6 +16,8 @@ Abra http://localhost:3000. Para desenvolvimento, mantenha o servidor ligado e e
 
 ## Roteiro rápido
 
+Para apresentar o projeto em um pitch de 3 minutos, use o [storytelling de demonstração](brazilnuts-demo-storytelling.md). Ele começa no salão, acompanha a decisão autônoma do agente e fecha no cliente por WhatsApp simulado, voz e cardápio com Exa.
+
 1. Comece com 80 mesas: nenhuma oferta.
 2. Ajuste para 60, 40 e depois 23 para demonstrar as faixas.
 3. Libere um lote de 5 cupons.
@@ -78,7 +80,7 @@ O endpoint mock contém quatro itens fictícios e só existe no servidor local. 
 
 ## Conversa por voz
 
-A área **Resultados** inclui a conversa do ponto de vista do cliente. O botão de microfone usa o reconhecimento de fala nativo do navegador (`SpeechRecognition` ou `webkitSpeechRecognition`) em `pt-BR`; ao primeiro uso, permita o microfone para `localhost`. Se o navegador não oferecer a API ou a permissão for bloqueada, digite a fala no campo de fallback ou use uma das intenções prontas. A fala é processada localmente na simulação e não é enviada para um serviço externo.
+A área **Resultados** inclui a conversa do ponto de vista do cliente. O botão de microfone usa o reconhecimento de fala nativo do navegador (`SpeechRecognition` ou `webkitSpeechRecognition`) em `pt-BR`; ao primeiro uso, permita o microfone para `localhost`. Se o navegador não oferecer a API ou a permissão for bloqueada, digite a fala no campo de fallback ou use uma das intenções prontas. A aplicação não envia a gravação para o backend; o processamento segue a implementação da API nativa disponível no navegador.
 
 Cada cupom reserva uma mesa por 30 minutos e mantém seu desconto. R$ 5 viram crédito na conta; desconto sobre até R$ 100 em itens elegíveis. Premissas comerciais da demo, não termos de um serviço em produção.
 

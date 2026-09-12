@@ -64,11 +64,13 @@ export function VoiceSimulator({
 }) {
   const [selected, setSelected] = useState("offer");
   const [listening, setListening] = useState(false);
+  const [simulating, setSimulating] = useState(false);
   const [turn, setTurn] = useState<any>(null);
   const [manualText, setManualText] = useState("");
   const [voiceError, setVoiceError] = useState("");
   const [supportsSpeech, setSupportsSpeech] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const simulationTimerRef = useRef<number | null>(null);
   const contextRef = useRef({ state, customer, menuHighlights });
   const processTranscriptRef = useRef<(transcript: string) => void>(() => {});
   const prompt = prompts.find((item) => item.id === selected) || prompts[0];
@@ -109,6 +111,7 @@ export function VoiceSimulator({
     recognition.onstart = () => {
       setVoiceError("");
       setTurn(null);
+      setSimulating(false);
       setListening(true);
     };
     recognition.onresult = (event: any) => {
@@ -118,10 +121,14 @@ export function VoiceSimulator({
       processTranscriptRef.current(transcript);
     };
     recognition.onerror = (event: any) => {
+      setSimulating(false);
       setListening(false);
       setVoiceError(speechError(event.error));
     };
-    recognition.onend = () => setListening(false);
+    recognition.onend = () => {
+      setSimulating(false);
+      setListening(false);
+    };
     recognitionRef.current = recognition;
     setSupportsSpeech(true);
     return () => {
@@ -133,7 +140,14 @@ export function VoiceSimulator({
     };
   }, []);
 
-  useEffect(() => () => window.speechSynthesis?.cancel(), []);
+  useEffect(
+    () => () => {
+      if (simulationTimerRef.current !== null)
+        window.clearTimeout(simulationTimerRef.current);
+      window.speechSynthesis?.cancel();
+    },
+    [],
+  );
 
   const startListening = () => {
     setVoiceError("");
@@ -148,13 +162,17 @@ export function VoiceSimulator({
     }
   };
 
-  const simulateVoice = () => {
+  const simulateVoice = (intent = prompt) => {
     if (listening) return;
     setVoiceError("");
+    setSelected(intent.id);
+    setSimulating(true);
     setListening(true);
     setTurn(null);
-    window.setTimeout(() => {
-      processTranscript(prompt.text);
+    simulationTimerRef.current = window.setTimeout(() => {
+      processTranscriptRef.current(intent.text);
+      simulationTimerRef.current = null;
+      setSimulating(false);
       setListening(false);
     }, 650);
   };
@@ -214,7 +232,7 @@ export function VoiceSimulator({
             </div>
           </div>
         ) : (
-          <p className="voice-hint">A fala fica neste navegador. O áudio não é enviado para fora da simulação.</p>
+          <p className="voice-hint">A gravação não é enviada ao backend da demo; o reconhecimento segue a API nativa do navegador.</p>
         )}
         <div className="voice-manual">
           <Input

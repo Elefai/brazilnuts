@@ -102,6 +102,191 @@
   font-size: 10px;
   color: #789065;
 }
+.pilot-deck {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #d6e2cd;
+  border-radius: 12px;
+  background: #fbfdf9;
+}
+.pilot-deck.working {
+  border-color: #9ebc8e;
+  background: #eaf2e3;
+}
+.pilot-deck.manual {
+  border-color: #e0e7db;
+  background: #f9faf7;
+}
+.pilot-avatar {
+  display: grid;
+  position: relative;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #234f3c;
+  color: #f0f7e8;
+}
+.pilot-deck.watching .pilot-avatar {
+  animation: pilot-breathe 2.4s ease-in-out infinite;
+}
+.pilot-deck.working .pilot-avatar {
+  animation: pilot-breathe 800ms ease-in-out infinite alternate;
+}
+.pilot-avatar > i {
+  position: absolute;
+  right: -1px;
+  bottom: 1px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #fbfdf9;
+  border-radius: 50%;
+  background: #8eaf6e;
+}
+.pilot-deck.working .pilot-avatar > i {
+  background: #e4a853;
+}
+.pilot-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.pilot-copy > span {
+  color: #789068;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 1px;
+}
+.pilot-copy b {
+  overflow: hidden;
+  color: #38563d;
+  font-size: 12px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pilot-copy small {
+  overflow: hidden;
+  margin: 0;
+  color: #82927b;
+  font-size: 9px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pilot-dots {
+  display: flex;
+  gap: 3px;
+  margin-left: auto;
+  padding-left: 8px;
+}
+.pilot-dots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #6f9460;
+  animation: pilot-dot 900ms ease-in-out infinite;
+}
+.pilot-dots i:nth-child(2) {
+  animation-delay: 150ms;
+}
+.pilot-dots i:nth-child(3) {
+  animation-delay: 300ms;
+}
+.pilot-route {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.pilot-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid #e1e8dc;
+  border-radius: 8px;
+  background: #f7faf4;
+}
+.pilot-step-dot {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #e2e9dc;
+  color: #82917a;
+  font-size: 9px;
+  font-weight: 700;
+}
+.pilot-step > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.pilot-step b,
+.pilot-step small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pilot-step b {
+  color: #6b7c65;
+  font-size: 9px;
+}
+.pilot-step small {
+  color: #9aa593;
+  font-size: 8px;
+}
+.pilot-step.done {
+  border-color: #ccddc2;
+  background: #edf4e8;
+}
+.pilot-step.done .pilot-step-dot {
+  background: #7ba06a;
+  color: white;
+}
+.pilot-step.active {
+  border-color: #a9c298;
+  background: #e6f0df;
+}
+.pilot-step.active .pilot-step-dot {
+  background: #d59a4d;
+  color: white;
+}
+@keyframes pilot-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 #7fa06c00;
+  }
+  50% {
+    box-shadow: 0 0 0 8px #7fa06c25;
+  }
+}
+@keyframes pilot-dot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pilot-deck.watching .pilot-avatar,
+  .pilot-deck.working .pilot-avatar,
+  .pilot-dots i {
+    animation: none;
+  }
+}
 .customer-base-title {
   display: flex;
   align-items: center;
@@ -168,6 +353,9 @@
   .campaign-panel .panel-title {
     align-items: start;
     flex-direction: column;
+  }
+  .pilot-route {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -450,6 +638,15 @@ h1 {
 .time-controls button {
   height: 29px;
   font-size: 10px;
+}
+.time-controls .demo-start {
+  border-color: #234f3c;
+  background: #234f3c;
+  color: #eff7e8;
+  box-shadow: 0 2px 8px #234f3c22;
+}
+.time-controls .demo-start:hover:not(:disabled) {
+  background: #1d4432;
 }
 .metrics {
   display: grid;
