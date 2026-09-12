@@ -18,6 +18,7 @@ import {
   Radio,
   LoaderCircle,
   RefreshCw,
+  BarChart3,
 } from "lucide-react";
 import {
   Sidebar,
@@ -40,6 +41,8 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import "./index.css";
 import { CampaignPanel } from "./components/campaign-panel";
+import { CampaignInsights } from "./components/campaign-insights";
+import { VoiceSimulator } from "./components/voice-simulator";
 
 const time = (n: number) =>
   new Date(n).toLocaleTimeString("pt-BR", {
@@ -118,6 +121,7 @@ function App() {
       (c: any) => c.id === selected || c.customerId === customerId,
     ),
     shown = draft ?? s.occupied;
+  const customer = s.customers.find((c: any) => c.id === customerId);
   const message = s.messages.find((m: any) => m.customerId === customerId);
   const seconds = message?.acceptBy
     ? Math.max(0, Math.ceil((message.acceptBy - s.now) / 1000))
@@ -219,6 +223,7 @@ function App() {
                 [Utensils, "Comandas", "floor"],
                 [Ticket, "Cupons e clientes", "reception"],
                 [Sparkles, "Assistente", "agent"],
+                [BarChart3, "Resultados", "results"],
               ].map(([Icon, label, id]: any) => (
                 <SidebarMenuItem key={label}>
                   <SidebarMenuButton
@@ -691,6 +696,14 @@ function App() {
               </CardContent>
             </Card>
           </div>
+          <section className="outcome-grid" aria-label="Resultados e experiência de voz">
+            <CampaignInsights state={s} />
+            <VoiceSimulator
+              state={s}
+              customer={customer}
+              menuHighlights={agent?.campaign?.menu_highlights || []}
+            />
+          </section>
           <div className="secondary-grid">
             <Card id="reception">
               <CardContent>
@@ -762,6 +775,9 @@ function App() {
               state={s}
               busy={busy}
               run={() => command("agent")}
+              toggleAuto={() =>
+                command("agent-auto", { enabled: !s.agent?.autoEnabled })
+              }
               select={(id) => {
                 setCustomerId(id);
                 setSelected(null);

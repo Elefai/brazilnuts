@@ -18,6 +18,13 @@ try {
 const engine = new Engine();
 const agent = new CampaignAgent(engine);
 const snapshot = () => ({ ...engine.snapshot(), agent: agent.snapshot() });
+const startAutomaticCampaign = () => {
+  const state = engine.snapshot();
+  if (!agent.autoEnabled || agent.busy || !state.discount || !state.available)
+    return false;
+  agent.run({ automatic: true }).catch((error) => agent.recordAutoFailure(error));
+  return true;
+};
 const campaignRuns = new Map();
 const mime = {
   ".html": "text/html",
@@ -151,8 +158,15 @@ const server = http.createServer(async (req, res) => {
         const decision = await agent.run();
         return json(200, { decision, state: snapshot() });
       }
+      if (type === "agent-auto") {
+        if (typeof payload.enabled !== "boolean")
+          throw new Error("Estado do piloto automático inválido.");
+        agent.setAutomatic(payload.enabled);
+        return json(200, { state: snapshot() });
+      }
       const result = engine.command(type, payload);
       if (type === "reset") agent.reset();
+      if (type === "batch") startAutomaticCampaign();
       return json(200, { ...result, state: snapshot() });
     }
     if (
@@ -175,6 +189,7 @@ const server = http.createServer(async (req, res) => {
     json(status, { error: e.message || "Não foi possível processar a requisição." });
   }
 });
-server.listen(Number(process.env.PORT || 3000), "127.0.0.1", () =>
-  console.log("BrazilNuts: http://localhost:3000"),
+const port = Number(process.env.PORT || 3000);
+server.listen(port, "127.0.0.1", () =>
+  console.log(`BrazilNuts: http://localhost:${port}`),
 );

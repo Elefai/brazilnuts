@@ -144,20 +144,33 @@ export class CampaignAgent {
     this.options = options;
     this.busy = false;
     this.last = null;
+    this.autoEnabled = options.autoEnabled ?? true;
+    this.autoError = null;
   }
   snapshot() {
     return {
       busy: this.busy,
       configured: Boolean(this.options.apiKey ?? process.env.OPENAI_API_KEY),
+      autoEnabled: this.autoEnabled,
+      autoError: this.autoError,
       last: this.last,
     };
   }
+  setAutomatic(enabled) {
+    this.autoEnabled = Boolean(enabled);
+    this.autoError = null;
+  }
+  recordAutoFailure(error) {
+    this.autoError = error?.message || "Não foi possível executar o piloto automático.";
+  }
   reset() {
     this.last = null;
+    this.autoError = null;
   }
-  async run() {
+  async run({ automatic = false } = {}) {
     if (this.busy) throw new Error("O agente já está analisando.");
     this.busy = true;
+    if (automatic) this.autoError = null;
     const context = contextFor(this.engine),
       fingerprint = JSON.stringify(context);
     try {
@@ -185,21 +198,34 @@ export class CampaignAgent {
       // Generated copy is a suggestion; actual deliveries always use authoritative terms.
       const opening = decision.opening.slice(0, 220);
       const message = `Uma mesa te espera! Garanta ${context.discount}% OFF sobre até R$ 100 em itens elegíveis. Cupom por R$ 5, abatidos da conta. Chegue em até 30 minutos após comprar. Oferta sujeita à disponibilidade. Não cumulativo.`;
+      const messageIds = [];
       if (send)
         for (const id of ids) {
           const c = this.engine.customers.find((c) => c.id === id);
           c.lastContact = this.engine.now();
+          const messageId = crypto.randomUUID();
           this.engine.messages.unshift({
-            id: crypto.randomUUID(),
+            id: messageId,
             at: this.engine.now(),
             customerId: id,
             discount: context.discount,
             text: message,
             source: decision.source,
           });
+          messageIds.push(messageId);
         }
       this.engine.messages = this.engine.messages.slice(0, 100);
+      const campaign = this.engine.recordCampaign({
+        action: send ? "send" : "pause",
+        source: decision.source,
+        reason: decision.reason,
+        customerIds: send ? ids : [],
+        messageIds,
+        automatic,
+      });
       this.last = {
+        campaignId: campaign.id,
+        automatic,
         at: this.engine.now(),
         action: send ? "send" : "pause",
         source: decision.source,
