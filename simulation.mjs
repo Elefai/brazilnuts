@@ -1,3 +1,4 @@
+import { contextFor } from './agent.mjs';
 export class Simulation {
   constructor(engine) { this.engine=engine; this.enabled=false; this.elapsed=0; this.seen=new Map(); this.current=null; }
   set(enabled) { this.enabled=enabled; }
@@ -9,7 +10,14 @@ export class Simulation {
     this.elapsed++;
     if(!this.current){
       const m=[...e.messages].reverse().find(m=>m.customerId&&!this.seen.has(m.id));
-      if(!m)return;
+      if(!m){
+        if(contextFor(e).customers.length===0){
+          e.command('reset');
+          e.log('Novo ciclo da demonstração','Base fictícia renovada: 200 clientes. Resultados do ciclo anterior reiniciados.');
+          this.seen.clear();this.elapsed=0;
+        }
+        return;
+      }
       this.current={...m,start:this.elapsed,kind:this.seen.size%3};
       this.seen.set(m.id,true);
     }
@@ -22,7 +30,12 @@ export class Simulation {
         if(c.kind===0)e.command('buy',{messageId:m.id,customerId:m.customerId,key:'sim-'+m.id,version:m.offerVersion});
         if(c.kind===1)e.command('reject-notification',{messageId:m.id,customerId:m.customerId});
       }
+      if(c.kind===0 && age>=10 && !c.arrived){
+        c.arrived=true;
+        const coupon=e.coupons.find(p=>p.key==='sim-'+m.id && p.status==='active');
+        if(coupon) e.command('validate',{token:coupon.token});
+      }
     }catch(error){e.log('Simulação: ação indisponível',error.message);}
-    if(age>=(c.kind===2?12:10))this.current=null;
+    if(age>=(c.kind===0?15:c.kind===2?12:10))this.current=null;
   }
 }

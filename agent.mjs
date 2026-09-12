@@ -10,7 +10,7 @@ const schema = {
   required: ["action", "reason", "customerIds", "opening"],
 };
 export function seedCustomers() {
-  return [
+  const names = [
     "Ana",
     "Bruno",
     "Carla",
@@ -23,11 +23,12 @@ export function seedCustomers() {
     "João",
     "Lia",
     "Marcos",
-  ].map((name, i) => ({
+  ];
+  return Array.from({length:200}, (_, i) => ({
     id: `demo-${i + 1}`,
-    name: `${name} (demo)`,
+    name: `${names[i % names.length]}${i < 12 ? '' : ` ${i + 1}`} (demo)`,
     preference: ["Almoço executivo", "Comida brasileira", "Vegetariano"][i % 3],
-    minutesAway: [5, 8, 12, 18, 7, 10, 25, 35, 9, 15, 6, 20][i],
+    minutesAway: [5, 8, 12, 18, 7, 10, 25, 35, 9, 15, 6, 20][i % 12],
     consent: ![7, 10].includes(i),
     lastContact: null,
   }));
