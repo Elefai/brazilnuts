@@ -26,7 +26,17 @@ Abra http://localhost:3000. Para desenvolvimento, mantenha o servidor ligado e e
 
 ## Limites da demo
 
-Dados, WhatsApp, pagamento e estorno são simulados. O QR é real, mas a leitura é acionada por botão ou código manual. Estado central em memória, reiniciado com o processo; servidor restrito ao computador local, sem autenticação e não adequado para exposição pública. O painel de assistente explica regras; não há IA conectada nesta versão. Próxima etapa: agente de campanhas com integração real, sem delegar preços ou estoque ao modelo.
+Dados, WhatsApp, pagamento e estorno são simulados. O QR é real, mas a leitura é acionada por botão ou código manual. Estado central em memória, reiniciado com o processo; servidor restrito ao computador local, sem autenticação e não adequado para exposição pública.
+
+## Agente de campanhas
+
+O botão “Analisar e executar campanha” consulta o estado e a base de 12 clientes fictícios, seleciona destinatários e registra envios simulados. O modelo pode escolher enviar ou pausar. O sistema limita os destinatários aos elegíveis, respeita estoque, autorização e intervalo de 30 minutos, e descarta decisões se o contexto mudou durante a análise. Compras são associadas ao cliente escolhido no celular; a base mostra convite, compra e chegada.
+
+Para ativar a OpenAI, crie um arquivo local `.env` a partir de `.env.example`, preencha `OPENAI_API_KEY` e reinicie o servidor. Não cole a chave no navegador nem faça commit dela. `OPENAI_MODEL` é configurável; o padrão é `gpt-5-mini`. A disponibilidade do modelo depende da conta. Requer Node 20.12+ para carregar o arquivo de ambiente automaticamente.
+
+Sem chave, o painel informa “Modo demonstrativo”; em erro de API, informa fallback. A integração usa Responses API com saída estruturada e `store:false`. O texto criativo é exibido como rascunho; a mensagem enviada na simulação mantém os termos comerciais determinados pelo sistema. Somente perfis fictícios com identificadores, preferência e tempo de chegada são enviados ao modelo.
+
+Validação local: testes com respostas de API simuladas cobrem limites, fallback, contexto obsoleto e reset durante análise. Chamada real pendente de configuração da chave. Referência: [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs).
 
 Cada cupom reserva uma mesa por 30 minutos e mantém seu desconto. R$ 5 viram crédito na conta; desconto sobre até R$ 100 em itens elegíveis. Premissas comerciais da demo, não termos de um serviço em produção.
 

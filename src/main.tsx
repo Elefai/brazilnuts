@@ -37,6 +37,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import "./index.css";
+import { CampaignPanel } from "./components/campaign-panel";
 
 const time = (n: number) =>
   new Date(n).toLocaleTimeString("pt-BR", {
@@ -52,6 +53,7 @@ function App() {
     [tab, setTab] = useState("Visão geral");
   const [draft, setDraft] = useState<number | null>(null),
     [quote, setQuote] = useState<any>(null);
+  const [customerId, setCustomerId] = useState("demo-1");
   const busyRef = useRef(false),
     keyRef = useRef(crypto.randomUUID());
   useEffect(() => {
@@ -96,8 +98,11 @@ function App() {
     }
   };
   if (!s) return <div className="loading">Carregando o salão… {error}</div>;
-  const coupon = s.coupons.find((c: any) => c.id === selected),
+  const coupon = s.coupons.find(
+      (c: any) => c.id === selected || c.customerId === customerId,
+    ),
     shown = draft ?? s.occupied;
+  const message = s.messages.find((m: any) => m.customerId === customerId);
   const buy = async () => {
     if (!quote) {
       setQuote({ version: s.version, discount: s.discount });
@@ -106,6 +111,7 @@ function App() {
     const r = await command("buy", {
       version: quote.version,
       key: keyRef.current,
+      customerId,
     });
     if (r) {
       setSelected(r.coupon.id);
@@ -116,6 +122,12 @@ function App() {
     setSelected(null);
     setQuote(null);
     keyRef.current = crypto.randomUUID();
+    const eligible = s.customers?.find(
+      (c: any) =>
+        c.id !== customerId &&
+        !s.coupons.some((p: any) => p.customerId === c.id),
+    );
+    if (eligible) setCustomerId(eligible.id);
   };
   const jump = (label: string, id: string) => {
     setTab(label);
@@ -449,6 +461,23 @@ function App() {
                   <MessageCircle size={19} />
                 </div>
                 <div className="phone">
+                  <select
+                    className="customer-select"
+                    aria-label="Cliente demonstrativo"
+                    value={customerId}
+                    onChange={(e) => {
+                      setCustomerId(e.target.value);
+                      setSelected(null);
+                      setQuote(null);
+                      keyRef.current = crypto.randomUUID();
+                    }}
+                  >
+                    {s.customers?.map((c: any) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
                   <div className="phone-status">
                     <b>{time(s.now)}</b>
                     <span>●●● ▰</span>
@@ -466,9 +495,11 @@ function App() {
                   <div className="chat-body">
                     <span className="today">HOJE</span>
                     <div className="message">
-                      {s.messages[0]?.text ||
-                        "Olá! Uma boa mesa e uma boa oferta podem estar esperando por você. Acompanhe por aqui."}
-                      <small>{time(s.messages[0]?.at || s.now)} ✓✓</small>
+                      {message?.text ||
+                        "Nenhum convite recebido por este cliente. Execute a campanha para selecionar o público. As ofertas públicas continuam disponíveis abaixo."}
+                      <small>
+                        {time(message?.at || s.now)} {message ? "✓✓" : ""}
+                      </small>
                     </div>
                     {coupon ? (
                       <div className="ticket">
@@ -631,37 +662,20 @@ function App() {
                 </div>
               </CardContent>
             </Card>
-            <Card id="agent" className="agent-card">
-              <CardContent>
-                <div className="panel-title">
-                  <h2>
-                    <Sparkles size={17} /> Assistente de campanha
-                  </h2>
-                  <Badge variant="outline">Simulado</Badge>
-                </div>
-                <h3>
-                  {!s.discount
-                    ? "Hora de cuidar de quem chegou."
-                    : s.available
-                      ? "Uma boa hora para convidar."
-                      : "Vamos preparar o próximo convite."}
-                </h3>
-                <p>
-                  Estou acompanhando <b>{s.occupied} mesas ocupadas</b> e{" "}
-                  <b>{s.reserved} clientes a caminho</b>.{" "}
-                  {!s.discount
-                    ? "A demanda atingiu o limite. Novas ofertas estão pausadas."
-                    : s.available
-                      ? `A faixa permite ${s.discount}% de desconto. Há ${s.available} cupons disponíveis para novos clientes.`
-                      : "Libere um lote para disponibilizar a oferta na conversa simulada."}
-                </p>
-                <div className="agent-disclaimer">
-                  Motor de regras ativo · IA ainda não conectada.
-                  <br />
-                  Próxima camada: selecionar público e criar campanhas.
-                </div>
-              </CardContent>
-            </Card>
+            <CampaignPanel
+              state={s}
+              busy={busy}
+              run={() => command("agent")}
+              select={(id) => {
+                setCustomerId(id);
+                setSelected(null);
+                setQuote(null);
+                keyRef.current = crypto.randomUUID();
+                document
+                  .querySelector(".client-card")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }}
+            />
             <Card>
               <CardContent>
                 <div className="panel-title">

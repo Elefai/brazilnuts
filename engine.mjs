@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { seedCustomers } from "./agent.mjs";
 
 export const discountFor = (n) =>
   n >= 75 ? 0 : n >= 50 ? 20 : n >= 25 ? 35 : 50;
@@ -11,6 +12,7 @@ export class Engine {
     this.offset = 0;
     this.tables = Array.from({ length: 100 }, (_, i) => i < 80);
     this.coupons = [];
+    this.customers = seedCustomers();
     this.events = [];
     this.messages = [];
     this.stock = 0;
@@ -78,6 +80,7 @@ export class Engine {
       now: this.now(),
       tables: this.tables,
       coupons: this.coupons,
+      customers: this.customers,
       events: this.events,
       messages: this.messages,
       stock: this.stock,
@@ -132,11 +135,23 @@ export class Engine {
         );
       if (before.available <= 0 || !before.discount)
         throw new Error("Oferta indisponível neste momento.");
+      const customer = this.customers.find((c) => c.id === p.customerId);
+      if (p.customerId && !customer) throw new Error("Cliente desconhecido.");
+      if (
+        customer &&
+        this.coupons.some(
+          (c) =>
+            c.customerId === customer.id &&
+            ["active", "used"].includes(c.status),
+        )
+      )
+        throw new Error("Este cliente já tem um cupom nesta demonstração.");
       const c = {
         id: randomUUID(),
         token: randomUUID(),
         key: p.key,
-        customer: `Cliente ${this.coupons.length + 1}`,
+        customer: customer?.name || `Cliente ${this.coupons.length + 1}`,
+        customerId: customer?.id || null,
         discount: before.discount,
         paidCents: 500,
         status: "active",

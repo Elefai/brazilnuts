@@ -2,7 +2,15 @@ import http from "node:http";
 import { readFile } from "node:fs/promises";
 import QRCode from "qrcode";
 import { Engine } from "./engine.mjs";
+import { CampaignAgent } from "./agent.mjs";
+try {
+  process.loadEnvFile?.();
+} catch (e) {
+  if (e.code !== "ENOENT") throw e;
+}
 const engine = new Engine();
+const agent = new CampaignAgent(engine);
+const snapshot = () => ({ ...engine.snapshot(), agent: agent.snapshot() });
 const mime = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -20,7 +28,7 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, "http://localhost");
     if (req.method === "GET" && url.pathname === "/api/state")
-      return json(200, engine.snapshot());
+      return json(200, snapshot());
     if (req.method === "GET" && url.pathname === "/api/qr") {
       const c = engine.coupons.find(
         (c) => c.token === url.searchParams.get("token"),
@@ -43,8 +51,13 @@ const server = http.createServer(async (req, res) => {
           return json(413, { error: "Requisição muito grande" });
       }
       const { type, ...payload } = JSON.parse(body);
+      if (type === "agent") {
+        const decision = await agent.run();
+        return json(200, { decision, state: snapshot() });
+      }
       const result = engine.command(type, payload);
-      return json(200, { ...result, state: engine.snapshot() });
+      if (type === "reset") agent.reset();
+      return json(200, { ...result, state: snapshot() });
     }
     if (
       req.method === "GET" &&
