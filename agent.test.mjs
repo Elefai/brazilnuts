@@ -34,6 +34,56 @@ test("campaign history keeps the funnel identifiers used by the dashboard", asyn
   });
   assert.notEqual(message.openedAt, undefined);
 });
+test("one campaign supports several client journeys with current offer versions", async () => {
+  const e = setup();
+  const result = await new CampaignAgent(e, { apiKey: "" }).run({
+    automatic: true,
+  });
+  const campaign = e.snapshot().campaigns[0];
+  const openAndBuy = (customerId) => {
+    const message = e.messages.find(
+      (item) => item.customerId === customerId && campaign.messageIds.includes(item.id),
+    );
+    const notification = e.command("open-notification", {
+      messageId: message.id,
+      customerId,
+    }).notification;
+    return e.command("buy", {
+      messageId: message.id,
+      version: notification.offerVersion,
+      key: `multi-client-${customerId}`,
+      customerId,
+    }).coupon;
+  };
+
+  const first = openAndBuy(result.customerIds[0]);
+  openAndBuy(result.customerIds[1]);
+  openAndBuy(result.customerIds[2]);
+  const fourthMessage = e.messages.find(
+    (item) =>
+      item.customerId === result.customerIds[3] && campaign.messageIds.includes(item.id),
+  );
+  e.command("open-notification", {
+    messageId: fourthMessage.id,
+    customerId: fourthMessage.customerId,
+  });
+  e.command("validate", { token: first.token });
+
+  const recipientIds = new Set(result.customerIds);
+  assert.equal(result.customerIds.length, 5);
+  assert.equal(
+    e.messages.filter((item) => recipientIds.has(item.customerId) && item.openedAt !== undefined)
+      .length,
+    4,
+  );
+  assert.equal(e.coupons.filter((item) => recipientIds.has(item.customerId)).length, 3);
+  assert.equal(
+    e.coupons.filter(
+      (item) => recipientIds.has(item.customerId) && item.status === "used",
+    ).length,
+    1,
+  );
+});
 test("automatic campaign runs are marked for the results dashboard", async () => {
   const e = setup();
   const result = await new CampaignAgent(e, { apiKey: "" }).run({ automatic: true });

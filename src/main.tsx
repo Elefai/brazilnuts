@@ -45,6 +45,7 @@ import { CampaignPanel } from "./components/campaign-panel";
 import { CampaignInsights } from "./components/campaign-insights";
 import { VoiceSimulator } from "./components/voice-simulator";
 import { DemoJourney } from "./components/demo-journey";
+import { FantasticDemo } from "./components/fantastic-demo";
 
 const time = (n: number) =>
   new Date(n).toLocaleTimeString("pt-BR", {
@@ -208,6 +209,27 @@ function App() {
     if (!s.agent?.autoEnabled) await command("agent-auto", { enabled: true });
     await command("occupancy", { value: 23 });
   };
+  const resetExperience = async () => {
+    setSelected(null);
+    setQuote(null);
+    setDraft(null);
+    setCustomerId("demo-1");
+    keyRef.current = crypto.randomUUID();
+    setAgent({ status: "idle" });
+    await command("reset");
+  };
+  if (window.location.pathname.replace(/\/+$/, "") === "/demofantastica")
+    return (
+      <FantasticDemo
+        state={s}
+        menuAgent={agent}
+        menuAgentConfig={agentConfig}
+        command={command}
+        startMission={startDemo}
+        runMenuAgent={runCampaign}
+        reset={resetExperience}
+      />
+    );
   return (
     <SidebarProvider>
       <Sidebar variant="inset">
@@ -260,6 +282,9 @@ function App() {
               Ofertas no ritmo certo.
             </b>
             <p>Simule o movimento e acompanhe cada cupom até a chegada.</p>
+            <a className="fantastic-entry" href="/demofantastica">
+              Abrir demo fantástica →
+            </a>
           </div>
         </SidebarContent>
         <SidebarFooter className="p-5">
@@ -320,9 +345,7 @@ function App() {
                   variant="outline"
                   disabled={busy}
                   onClick={async () => {
-                    await command("reset");
-                    next();
-                    setDraft(null);
+                    await resetExperience();
                   }}
                 >
                   <RotateCcw size={15} />

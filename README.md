@@ -18,6 +18,8 @@ Abra http://localhost:3000. Para desenvolvimento, mantenha o servidor ligado e e
 
 Para apresentar o projeto em um pitch de 3 minutos, use o [storytelling de demonstração](brazilnuts-demo-storytelling.md). Ele começa no salão, acompanha a decisão autônoma do agente e fecha no cliente por WhatsApp simulado, voz e cardápio com Exa.
 
+Para uma experiência de palco autônoma e mais lúdica, abra [`/demofantastica`](/demofantastica): ela roda sozinha, acompanha cinco clientes da mesma campanha e fecha com o resultado. Use o [roteiro de cerca de 1 minuto](demofantastica-storytelling.md) apenas para narrar.
+
 1. Comece com 80 mesas: nenhuma oferta.
 2. Ajuste para 60, 40 e depois 23 para demonstrar as faixas.
 3. Libere um lote de 5 cupons.

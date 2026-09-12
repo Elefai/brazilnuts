@@ -182,9 +182,16 @@ const server = http.createServer(async (req, res) => {
     }
     if (
       req.method === "GET" &&
-      (url.pathname === "/" || /^\/assets\/[a-zA-Z0-9._-]+$/.test(url.pathname))
+      (
+        url.pathname === "/" ||
+        url.pathname === "/demofantastica" ||
+        url.pathname === "/demofantastica/" ||
+        /^\/assets\/[a-zA-Z0-9._-]+$/.test(url.pathname)
+      )
     ) {
-      const file = url.pathname === "/" ? "index.html" : url.pathname.slice(1);
+      const file = url.pathname.startsWith("/assets/")
+        ? url.pathname.slice(1)
+        : "index.html";
       const contents = await readFile(
         new URL(`./dist/${file}`, import.meta.url),
       );
