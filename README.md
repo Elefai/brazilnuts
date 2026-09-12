@@ -30,7 +30,9 @@ Dados, WhatsApp, pagamento e estorno são simulados. O QR é real, mas a leitura
 
 ## Agente de campanhas
 
-O botão “Analisar e executar campanha” consulta o estado e a base de 12 clientes fictícios, seleciona destinatários e registra envios simulados. O modelo pode escolher enviar ou pausar. O sistema limita os destinatários aos elegíveis, respeita estoque, autorização e intervalo de 30 minutos, e descarta decisões se o contexto mudou durante a análise. Compras são associadas ao cliente escolhido no celular; a base mostra convite, compra e chegada.
+O botão “Executar agora” consulta o estado e a base de 12 clientes fictícios, seleciona destinatários e registra envios simulados. O modelo pode escolher enviar ou pausar. O sistema limita os destinatários aos elegíveis, respeita estoque, autorização e intervalo de 30 minutos, e descarta decisões se o contexto mudou durante a análise. Compras são associadas ao cliente escolhido no celular; a base mostra convite, compra e chegada.
+
+O **piloto automático** reage a mudanças de ocupação, compra, chegada e relógio. Quando existe uma oferta válida sem lote disponível, ele libera um lote fictício e executa a campanha; use “Desativar piloto” para voltar ao modo manual. Toda execução automática fica marcada no histórico do dashboard de resultados.
 
 Para ativar a OpenAI, crie um arquivo local `.env` a partir de `.env.example`, preencha `OPENAI_API_KEY` e reinicie o servidor. Não cole a chave no navegador nem faça commit dela. `OPENAI_MODEL` é configurável; o padrão é `gpt-5-mini`. A disponibilidade do modelo depende da conta. Requer Node 20.12+ para carregar o arquivo de ambiente automaticamente.
 
@@ -73,6 +75,10 @@ pnpm start
 ```
 
 O endpoint mock contém quatro itens fictícios e só existe no servidor local. Em ambos os casos, abra `http://localhost:3000`, vá em **Assistente** e use o botão do assistente de cardápio. O primeiro modo é inteiramente simulado; o segundo cria, acompanha e exibe uma execução real da Exa.
+
+## Conversa por voz
+
+A área **Resultados** inclui a conversa do ponto de vista do cliente. O botão de microfone usa o reconhecimento de fala nativo do navegador (`SpeechRecognition` ou `webkitSpeechRecognition`) em `pt-BR`; ao primeiro uso, permita o microfone para `localhost`. Se o navegador não oferecer a API ou a permissão for bloqueada, digite a fala no campo de fallback ou use uma das intenções prontas. O reconhecimento pode enviar áudio ao serviço do navegador. As respostas são demonstrativas, baseadas em regras locais, e não em um agente de voz generativo.
 
 Cada cupom reserva uma mesa por 30 minutos e mantém seu desconto. R$ 5 viram crédito na conta; desconto sobre até R$ 100 em itens elegíveis. Premissas comerciais da demo, não termos de um serviço em produção.
 

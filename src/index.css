@@ -778,6 +778,31 @@ h1 {
   font-size: 10px;
   line-height: 1.6;
 }
+.voice-error {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e1c9b9;
+  border-radius: 8px;
+  background: #fff8f2;
+  color: #9b624b !important;
+  font-size: 10px !important;
+  line-height: 1.5 !important;
+}
+.voice-manual {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.voice-manual input {
+  min-width: 0;
+  flex: 1;
+  height: 36px;
+  font-size: 10px;
+}
+.voice-manual button {
+  height: 36px;
+  font-size: 10px;
+}
 .voice-run {
   width: 100%;
   min-height: 40px;
@@ -1246,6 +1271,24 @@ h2 {
 .agent-card {
   background: #f1f5eb !important;
   border-color: #dbe5ce !important;
+}
+.agent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.agent-actions button {
+  flex: 1;
+  min-height: 36px;
+  margin-top: 0 !important;
+  font-size: 10px;
+}
+.agent-auto-error {
+  margin-top: 8px !important;
+  color: #a5433b !important;
+  font-size: 10px !important;
+  line-height: 1.5 !important;
 }
 .agent-card h3 {
   font-size: 18px;
