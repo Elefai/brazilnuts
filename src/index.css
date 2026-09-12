@@ -386,6 +386,25 @@
 .demo-timer,.accept-timer {font-size:28px!important;font-weight:800;text-align:center;padding:12px;background:#fff0d9;border-radius:12px;color:#714300;}
 [role="switch"][aria-checked="true"] {background:#24563b!important;color:white!important;border:2px solid #83b993!important;}
 [role="switch"][aria-checked="false"] {border:2px solid #879187!important;}
+.dashboard-v2 h2 {font-size:28px;font-weight:700;color:#193f2c;}
+.dashboard-v2 h3 {font-size:20px;font-weight:650;margin:20px 0 8px;color:#193f2c;}
+.dashboard-v2 p {font-size:14px;color:#52645b;margin:8px 0 18px;}
+.dash-kpis {display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0;}
+.dash-kpis > div {padding:20px;background:#edf4ee;border:1px solid #c8d9cc;border-radius:12px;}
+.dash-kpis span {display:block;font-size:16px;color:#3a5645;}
+.dash-kpis strong {display:block;font-size:42px;color:#153e29;line-height:1.3;}
+.dash-charts {display:grid;grid-template-columns:1fr 1fr;gap:28px;}
+.dash-charts section {padding:20px;border:1px solid #cedbd1;border-radius:12px;}
+.dash-row {margin:18px 0;}
+.dash-row > div:first-child {display:flex;justify-content:space-between;gap:12px;font-size:16px;margin-bottom:8px;color:#254634;}
+.dash-track {height:22px;background:#e9eeea;border-radius:5px;overflow:hidden;}
+.dash-track i {display:block;height:100%;background:#2e7550;transition:width .3s;}
+.outcome-1 i {background:#b26529;}.outcome-2 i {background:#9b4952;}.outcome-3 i {background:#66778b;}
+.dash-table {overflow-x:auto;}.dash-table table {width:100%;border-collapse:collapse;font-size:15px;}
+.dash-table th,.dash-table td {padding:14px;text-align:left;border-bottom:1px solid #dce4df;}
+.dash-table th {background:#edf4ee;color:#234a34;}
+.dash-pagination {display:flex;justify-content:flex-end;align-items:center;gap:14px;margin-top:20px;}
+@media(max-width:800px){.dash-charts{grid-template-columns:1fr}.dash-kpis{grid-template-columns:repeat(2,1fr)}}
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

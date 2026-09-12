@@ -46,7 +46,7 @@ export class Engine {
       messageIds: [...new Set(messageIds.filter((id) => typeof id === "string"))],
     };
     this.campaigns.push(campaign);
-    this.campaigns = this.campaigns.slice(-12);
+    // Keep the entire demo cycle for accurate dashboard totals; reset clears it.
     return campaign;
   }
   metrics() {
@@ -95,7 +95,7 @@ export class Engine {
           text: `Uma mesa te espera! Garanta ${m.discount}% OFF no BrazilNuts. Compre seu cupom por R$ 5 e chegue em até 30 minutos.`,
         });
     }
-    this.messages = this.messages.slice(0, 15);
+    // Campaign messages are retained until the demo cycle resets.
   }
   snapshot() {
     this.expire();
@@ -219,6 +219,7 @@ export class Engine {
         key: p.key,
         customer: customer?.name || `Cliente ${this.coupons.length + 1}`,
         customerId: customer?.id || null,
+        messageId: p.messageId || null,
         discount: before.discount,
         paidCents: 500,
         status: "active",

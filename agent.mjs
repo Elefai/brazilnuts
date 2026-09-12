@@ -216,7 +216,7 @@ export class CampaignAgent {
           });
           messageIds.push(messageId);
         }
-      this.engine.messages = this.engine.messages.slice(0, 100);
+      // Retain invitation outcomes for the current demo cycle.
       const campaign = this.engine.recordCampaign({
         action: send ? "send" : "pause",
         source: decision.source,
