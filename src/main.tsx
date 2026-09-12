@@ -103,13 +103,13 @@ function App() {
     ),
     shown = draft ?? s.occupied;
   const message = s.messages.find((m: any) => m.customerId === customerId);
+  const seconds = message?.acceptBy
+    ? Math.max(0, Math.ceil((message.acceptBy - s.now) / 1000))
+    : 30;
   const buy = async () => {
-    if (!quote) {
-      setQuote({ version: s.version, discount: s.discount });
-      return;
-    }
     const r = await command("buy", {
-      version: quote.version,
+      version: message.offerVersion,
+      messageId: message.id,
       key: keyRef.current,
       customerId,
     });
@@ -494,13 +494,40 @@ function App() {
                   </div>
                   <div className="chat-body">
                     <span className="today">HOJE</span>
-                    <div className="message">
-                      {message?.text ||
-                        "Nenhum convite recebido por este cliente. Execute a campanha para selecionar o público. As ofertas públicas continuam disponíveis abaixo."}
-                      <small>
-                        {time(message?.at || s.now)} {message ? "✓✓" : ""}
-                      </small>
-                    </div>
+                    {!coupon && message && message.openedAt === undefined && (
+                      <button
+                        key={message.id}
+                        className="incoming-notification"
+                        onClick={async () => {
+                          const r = await command("open-notification", {
+                            messageId: message.id,
+                            customerId,
+                          });
+                          if (r)
+                            setQuote({
+                              version: r.notification.offerVersion,
+                              discount: r.notification.offerDiscount,
+                            });
+                        }}
+                      >
+                        <MessageCircle size={20} />
+                        <span>
+                          <b>Nova oferta · BrazilNuts</b>
+                          <small>
+                            {message.discount}% OFF esperando por você
+                          </small>
+                          <strong>Toque para abrir →</strong>
+                        </span>
+                      </button>
+                    )}
+                    {!coupon && !message && (
+                      <div className="message">
+                        Aguardando uma nova notificação do restaurante.
+                      </div>
+                    )}
+                    {message?.openedAt !== undefined && (
+                      <div className="message">{message.text}</div>
+                    )}
                     {coupon ? (
                       <div className="ticket">
                         <Badge variant="secondary">
@@ -535,12 +562,19 @@ function App() {
                           Apresentar na recepção
                         </Button>
                       </div>
-                    ) : (
+                    ) : message?.openedAt !== undefined ? (
                       <div className="mobile-offer">
+                        <div className="accept-timer" role="timer">
+                          {seconds > 0
+                            ? `Aceite em ${seconds}s`
+                            : "Tempo esgotado"}
+                        </div>
                         <span>SEU PRÓXIMO ALMOÇO</span>
                         <h3>
-                          {s.discount ? `${s.discount}%` : "Até já!"}
-                          {s.discount > 0 && <small>OFF</small>}
+                          {message.offerDiscount
+                            ? `${message.offerDiscount}%`
+                            : "Até já!"}
+                          {message.offerDiscount > 0 && <small>OFF</small>}
                         </h3>
                         <p>
                           {s.available
@@ -567,12 +601,12 @@ function App() {
                         )}
                         <Button
                           className="buy"
-                          disabled={busy || !s.available}
+                          disabled={busy || !s.available || seconds === 0}
                           onClick={buy}
                         >
-                          {quote
-                            ? "Confirmar pagamento simulado"
-                            : "Garantir por R$ 5"}{" "}
+                          {seconds > 0
+                            ? "Aceitar e pagar R$ 5 (simulado)"
+                            : "Oferta expirada"}{" "}
                           <ArrowUpRight size={15} />
                         </Button>
                         <small className="terms">
@@ -580,6 +614,14 @@ function App() {
                           Expirou: estorno fictício dos R$ 5. Nenhuma cobrança
                           real.
                         </small>
+                      </div>
+                    ) : (
+                      <div className="notification-wait">
+                        <Clock size={24} />
+                        <p>
+                          Você tem 30 segundos para aceitar depois de abrir a
+                          notificação.
+                        </p>
                       </div>
                     )}
                   </div>

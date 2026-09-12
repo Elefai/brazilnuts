@@ -103,7 +103,11 @@ test("reset while inference pending cannot deliver old campaign", async () => {
 test("high occupancy pauses and customer purchase maps to profile", async () => {
   const e = setup(),
     id = "demo-1";
+  await new CampaignAgent(e, { apiKey: "" }).run();
+  const message = e.messages.find((m) => m.customerId === id);
+  e.command("open-notification", { messageId: message.id, customerId: id });
   const c = e.command("buy", {
+    messageId: message.id,
     key: crypto.randomUUID(),
     version: e.version,
     customerId: id,

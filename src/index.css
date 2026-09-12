@@ -1,4 +1,64 @@
 @import "tailwindcss";
+.incoming-notification {
+  display: flex;
+  gap: 12px;
+  background: white;
+  padding: 16px;
+  border-radius: 14px;
+  width: 100%;
+  text-align: left;
+  box-shadow: 0 5px 25px #234f3c20;
+  animation: notification-in 0.5s ease-out;
+}
+.incoming-notification b,
+.incoming-notification small,
+.incoming-notification strong {
+  display: block;
+}
+.incoming-notification b {
+  font-size: 12px;
+}
+.incoming-notification small {
+  margin: 6px 0;
+  font-size: 11px;
+}
+.incoming-notification strong {
+  font-size: 10px;
+  color: #234f3c;
+}
+.accept-timer {
+  padding: 9px;
+  border-radius: 7px;
+  background: #fff1d1;
+  color: #765213;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.notification-wait {
+  text-align: center;
+  padding: 45px 15px;
+  color: #87947b;
+  font-size: 12px;
+}
+.notification-wait svg {
+  margin: 0 auto 12px;
+}
+@keyframes notification-in {
+  from {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .incoming-notification {
+    animation: none;
+  }
+}
 
 .campaign-panel {
   grid-column: 1/-1;

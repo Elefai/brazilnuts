@@ -124,11 +124,36 @@ export class Engine {
         throw new Error("Ocupação alta: novos cupons pausados.");
       this.stock = Math.min(5, 75 - before.effective);
       this.log("Lote liberado", `${this.stock} cupons disponíveis`);
+    } else if (type === "open-notification") {
+      const message = this.messages.find(
+        (m) => m.id === p.messageId && m.customerId === p.customerId,
+      );
+      if (!message) throw new Error("Notificação não encontrada.");
+      if (message.openedAt === undefined) {
+        message.openedAt = this.now();
+        message.acceptBy = this.now() + 30000;
+        message.offerVersion = this.version;
+        message.offerDiscount = before.discount;
+      }
+      return { notification: message };
     } else if (type === "buy") {
       if (typeof p.key !== "string" || p.key.length < 8 || p.key.length > 100)
         throw new Error("Identificador de compra inválido.");
       const prior = this.coupons.find((c) => c.key === p.key);
       if (prior) return { coupon: prior };
+      if (p.customerId) {
+        const notification = this.messages.find(
+          (m) => m.id === p.messageId && m.customerId === p.customerId,
+        );
+        if (!notification || notification.openedAt === undefined)
+          throw new Error("Abra a notificação antes de aceitar.");
+        if (this.now() >= notification.acceptBy)
+          throw new Error(
+            "Os 30 segundos para aceitar terminaram. Aguarde um novo convite.",
+          );
+        if (notification.offerVersion !== p.version)
+          throw new Error("Oferta inválida para esta notificação.");
+      }
       if (p.version !== this.version)
         throw new Error(
           "A oferta mudou. Confira o desconto atual e aceite novamente.",
