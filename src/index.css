@@ -955,6 +955,71 @@ h2 {
   color: #7b8a6d;
   line-height: 1.8;
 }
+.agent-run {
+  width: 100%;
+  min-height: 40px;
+  margin-top: 16px;
+  font-size: 12px;
+}
+.agent-result {
+  display: grid;
+  gap: 12px;
+}
+.agent-result-label {
+  color: #789068;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+}
+.agent-message {
+  border-left: 3px solid #84a36c;
+  color: #3d5945 !important;
+  font-size: 13px !important;
+  font-weight: 500;
+  line-height: 1.6 !important;
+  padding-left: 12px;
+}
+.agent-note {
+  color: #71806b !important;
+  font-size: 11px !important;
+  line-height: 1.6 !important;
+}
+.agent-highlights {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid #dae4cf;
+  padding-top: 12px;
+}
+.agent-highlights span {
+  color: #708067;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.agent-highlights b {
+  color: #476440;
+}
+.agent-sources,
+.agent-config,
+.agent-error {
+  font-size: 10px !important;
+  line-height: 1.5 !important;
+}
+.agent-sources {
+  color: #85957d !important;
+}
+.agent-sources a {
+  color: #416b48;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.agent-config {
+  color: #8b7a4c !important;
+  margin-top: 12px !important;
+}
+.agent-error {
+  color: #a5433b !important;
+  margin-top: 12px !important;
+}
 .agent-disclaimer {
   border-top: 1px solid #dae4cf;
   margin-top: 16px;

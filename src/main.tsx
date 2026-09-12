@@ -16,6 +16,8 @@ import {
   MessageCircle,
   Leaf,
   Radio,
+  LoaderCircle,
+  RefreshCw,
 } from "lucide-react";
 import {
   Sidebar,
@@ -53,9 +55,12 @@ function App() {
     [tab, setTab] = useState("Visão geral");
   const [draft, setDraft] = useState<number | null>(null),
     [quote, setQuote] = useState<any>(null);
-  const [customerId, setCustomerId] = useState("demo-1");
+  const [customerId, setCustomerId] = useState("demo-1"),
+    [agentConfig, setAgentConfig] = useState<any>(null),
+    [agent, setAgent] = useState<any>({ status: "idle" });
   const busyRef = useRef(false),
-    keyRef = useRef(crypto.randomUUID());
+    keyRef = useRef(crypto.randomUUID()),
+    agentPollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     let active = true;
     const poll = async () => {
@@ -73,6 +78,17 @@ function App() {
     return () => {
       active = false;
       clearInterval(id);
+    };
+  }, []);
+  useEffect(() => {
+    let active = true;
+    fetch("/api/agent/config")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => active && setAgentConfig(data))
+      .catch(() => active && setAgentConfig({ ready: false, missing: [] }));
+    return () => {
+      active = false;
+      if (agentPollRef.current) clearTimeout(agentPollRef.current);
     };
   }, []);
   const command = async (type: string, p: any = {}) => {
@@ -134,6 +150,44 @@ function App() {
     document
       .getElementById(id)
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const pollCampaign = async (runId: string, attempt = 0) => {
+    try {
+      const response = await fetch(`/api/agent/runs/${runId}`);
+      const data = await response.json();
+      if (!response.ok) throw Error(data.error || "Não foi possível consultar o agente.");
+      if (data.terminal) {
+        setAgent({
+          status: data.status,
+          campaign: data.campaign,
+          sources: data.sources || [],
+          catalog: data.catalog,
+          cost: data.cost_dollars,
+          error: data.error,
+        });
+        return;
+      }
+      if (attempt >= 40)
+        throw Error("O agente ainda está processando. Tente novamente em instantes.");
+      setAgent({ status: "running", catalog: data.catalog });
+      agentPollRef.current = setTimeout(() => pollCampaign(runId, attempt + 1), 1500);
+    } catch (e: any) {
+      setAgent({ status: "failed", error: e.message });
+    }
+  };
+  const runCampaign = async () => {
+    if (!agentConfig?.ready || agent.status === "starting" || agent.status === "running")
+      return;
+    setAgent({ status: "starting" });
+    try {
+      const response = await fetch("/api/agent/campaign", { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) throw Error(data.error || "Não foi possível iniciar o agente.");
+      setAgent({ status: "running", catalog: data.catalog });
+      await pollCampaign(data.run_id);
+    } catch (e: any) {
+      setAgent({ status: "failed", error: e.message });
+    }
   };
   return (
     <SidebarProvider>
@@ -718,6 +772,92 @@ function App() {
                   ?.scrollIntoView({ behavior: "smooth" });
               }}
             />
+            <Card id="exa-agent" className="agent-card">
+              <CardContent>
+                <div className="panel-title">
+                  <h2>
+                    <Sparkles size={17} /> Assistente de cardápio
+                  </h2>
+                  <Badge variant="outline">
+                    {agentConfig?.mock
+                      ? "Simulação local"
+                      : agentConfig?.ready
+                        ? "Exa Agent"
+                        : "Configuração pendente"}
+                  </Badge>
+                </div>
+                {agent.status === "completed" && agent.campaign ? (
+                  <div className="agent-result" aria-live="polite">
+                    <span className="agent-result-label">MENSAGEM SUGERIDA</span>
+                    <p className="agent-message">{agent.campaign.whatsapp_message}</p>
+                    <p className="agent-note">{agent.campaign.operator_note}</p>
+                    {agent.campaign.menu_highlights?.length > 0 && (
+                      <div className="agent-highlights">
+                        {agent.campaign.menu_highlights.map((item: any) => (
+                          <span key={`${item.category}-${item.name}`}>
+                            <b>{item.name}</b> · {item.reason}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {agent.sources?.length > 0 && (
+                      <div className="agent-sources">
+                        Fontes Exa: {agent.sources.map((source: any, i: number) => (
+                          <a key={source.url} href={source.url} target="_blank" rel="noreferrer">
+                            {i ? ", " : ""}{source.title}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <h3>
+                      {!s.discount
+                        ? "Hora de cuidar de quem chegou."
+                        : s.available
+                          ? "Uma boa hora para convidar."
+                          : "Vamos preparar o próximo convite."}
+                    </h3>
+                    <p>
+                      O agente usa o cardápio do backend e acompanha{" "}
+                      <b>{s.occupied} mesas ocupadas</b> e <b>{s.reserved} clientes a caminho</b>.{" "}
+                      {!s.discount
+                        ? "A demanda atingiu o limite. Novas ofertas estão pausadas."
+                        : s.available
+                          ? `A faixa permite ${s.discount}% de desconto. Há ${s.available} cupons disponíveis.`
+                          : "Libere um lote para disponibilizar a oferta."}
+                    </p>
+                  </>
+                )}
+                {agent.status === "failed" && (
+                  <p className="agent-error" role="alert">{agent.error}</p>
+                )}
+                {!agentConfig?.ready && agentConfig && (
+                  <p className="agent-config">
+                    Configure {agentConfig.missing?.join(" e ") || "o servidor"} para ativar a Exa.
+                  </p>
+                )}
+                <Button
+                  className="agent-run"
+                  disabled={!agentConfig?.ready || agent.status === "starting" || agent.status === "running"}
+                  onClick={runCampaign}
+                >
+                  {agent.status === "starting" || agent.status === "running" ? (
+                    <><LoaderCircle className="animate-spin" size={16} /> Consultando a Exa</>
+                  ) : agent.status === "completed" ? (
+                    <><RefreshCw size={16} /> Gerar nova mensagem</>
+                  ) : (
+                    <><Sparkles size={16} /> {agentConfig?.mock ? "Simular resposta do agente" : "Gerar com agente Exa"}</>
+                  )}
+                </Button>
+                <div className="agent-disclaimer">
+                  {agentConfig?.mock
+                    ? "Modo mock: não consulta a Exa nem um backend externo."
+                    : "O motor preserva desconto, estoque e prazo. A Exa sugere apenas o texto e os itens do cardápio."}
+                </div>
+              </CardContent>
+            </Card>
             <Card>
               <CardContent>
                 <div className="panel-title">
