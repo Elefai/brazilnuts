@@ -19,6 +19,7 @@ import {
   LoaderCircle,
   RefreshCw,
   BarChart3,
+  Play,
 } from "lucide-react";
 import {
   Sidebar,
@@ -193,6 +194,10 @@ function App() {
       setAgent({ status: "failed", error: e.message });
     }
   };
+  const startDemo = async () => {
+    if (!s.agent?.autoEnabled) await command("agent-auto", { enabled: true });
+    await command("occupancy", { value: 23 });
+  };
   return (
     <SidebarProvider>
       <Sidebar variant="inset">
@@ -283,6 +288,14 @@ function App() {
                 {time(s.now)} <small>relógio da demo</small>
               </span>
               <div>
+                <Button
+                  size="sm"
+                  className="demo-start"
+                  disabled={busy}
+                  onClick={startDemo}
+                >
+                  <Play size={13} /> Iniciar missão
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"

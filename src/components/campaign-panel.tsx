@@ -16,6 +16,39 @@ export function CampaignPanel({
   select: (id: string) => void;
 }) {
   const last = s.agent?.last;
+  const autopilot = Boolean(s.agent?.autoEnabled);
+  const working = Boolean(s.agent?.busy);
+  const missionTitle = working
+    ? "O piloto está em missão"
+    : last?.automatic
+      ? "Missão concluída — agora observo"
+      : autopilot
+        ? "O piloto está de olho no salão"
+        : "Você está no comando";
+  const missionDetail = working
+    ? "Lendo o movimento e escolhendo quem deve receber o próximo convite."
+    : last?.automatic
+      ? `${last.customerIds.length || 0} convites saíram; vou acompanhar os sinais de resposta.`
+      : autopilot
+        ? "Quando a oferta mudar, eu libero o lote e preparo a próxima jogada."
+        : "Ative o piloto para deixar a simulação tomar decisões sozinha.";
+  const missionSteps = [
+    {
+      label: "Ler o salão",
+      detail: `${s.occupied} ocupadas · ${s.reserved} a caminho`,
+      state: "done",
+    },
+    {
+      label: working ? "Escolher público" : last ? "Público escolhido" : "Esperar a hora certa",
+      detail: working ? "cruzando perfis e consentimento" : "proximidade + disponibilidade",
+      state: working ? "active" : last ? "done" : "next",
+    },
+    {
+      label: last?.action === "send" ? "Convites no ar" : "Preparar convite",
+      detail: last?.action === "send" ? `${last.customerIds.length} clientes convidados` : "mensagem com termos do sistema",
+      state: last && !working ? "done" : working ? "active" : "next",
+    },
+  ];
   return (
     <Card id="agent" className="campaign-panel">
       <CardContent>
@@ -34,10 +67,28 @@ export function CampaignPanel({
         </div>
         <div className="campaign-columns">
           <div>
-            <div className="agent-steps">
-              <span>01 Observar</span>
-              <span>02 Decidir</span>
-              <span>03 Convidar</span>
+            <div className={`pilot-deck ${working ? "working" : autopilot ? "watching" : "manual"}`}>
+              <div className="pilot-avatar" aria-hidden="true">
+                <Bot size={20} />
+                <i />
+              </div>
+              <div className="pilot-copy">
+                <span>{working ? "EM MISSÃO" : autopilot ? "PILOTO EM VIGÍLIA" : "CONTROLE MANUAL"}</span>
+                <b>{missionTitle}</b>
+                <small>{missionDetail}</small>
+              </div>
+              {working && <span className="pilot-dots" aria-label="Agente trabalhando"><i /><i /><i /></span>}
+            </div>
+            <div className="pilot-route" aria-label="Etapas do piloto automático">
+              {missionSteps.map((step, index) => (
+                <div className={`pilot-step ${step.state}`} key={step.label}>
+                  <span className="pilot-step-dot">{step.state === "done" ? "✓" : index + 1}</span>
+                  <span>
+                    <b>{step.label}</b>
+                    <small>{step.detail}</small>
+                  </span>
+                </div>
+              ))}
             </div>
             <h3>
               {last
