@@ -8,7 +8,7 @@ export const pizzaCategories = [
 
 export type PizzaCategory = (typeof pizzaCategories)[number];
 
-export type Pizza = {
+type BasePizza = {
   category: PizzaCategory;
   name: string;
   ingredients: string;
@@ -18,6 +18,24 @@ export type Pizza = {
   image: string;
   alt: string;
   featured?: boolean;
+};
+
+export type NutritionEstimate = {
+  calories: number;
+  carbs: number;
+  protein: number;
+  fat: number;
+  fiber: number;
+};
+
+export type Pizza = BasePizza & {
+  slug: string;
+  description: string;
+  slices: number;
+  detailedIngredients: string[];
+  allergens: string[];
+  traceWarning: string;
+  nutrition: NutritionEstimate;
 };
 
 const images = {
@@ -33,7 +51,7 @@ const images = {
     "https://images.unsplash.com/photo-1594007654729-407eedc4be65?auto=format&fit=crop&w=900&q=85",
 };
 
-export const pizzas: Pizza[] = [
+const basePizzas: BasePizza[] = [
   {
     category: "Tradicionais",
     name: "Mussarela",
@@ -290,3 +308,68 @@ export const pizzas: Pizza[] = [
     alt: "Pizza doce de creme de avelã e chocolate branco",
   },
 ];
+
+const nutritionByPizza: Record<string, NutritionEstimate> = {
+  Mussarela: { calories: 185, carbs: 21, protein: 9, fat: 8, fiber: 1.5 },
+  Calabresa: { calories: 210, carbs: 21, protein: 9, fat: 10, fiber: 1.5 },
+  Portuguesa: { calories: 215, carbs: 22, protein: 10, fat: 10, fiber: 2 },
+  "Frango com Catupiry": { calories: 205, carbs: 20, protein: 12, fat: 9, fiber: 1 },
+  Napolitana: { calories: 190, carbs: 21, protein: 9, fat: 8, fiber: 2 },
+  "Quatro Queijos": { calories: 230, carbs: 20, protein: 11, fat: 12, fiber: 1 },
+  "Rúcula & Tomate Seco": { calories: 205, carbs: 21, protein: 10, fat: 9, fiber: 2 },
+  Baiana: { calories: 220, carbs: 22, protein: 10, fat: 10, fiber: 1.5 },
+  "Brócolis & Bacon": { calories: 225, carbs: 20, protein: 11, fat: 11, fiber: 2 },
+  Pepperoni: { calories: 235, carbs: 21, protein: 10, fat: 12, fiber: 1 },
+  "Palmito da Horta": { calories: 165, carbs: 23, protein: 4, fat: 6, fiber: 3 },
+  Cogumelos: { calories: 175, carbs: 22, protein: 5, fat: 7, fiber: 3 },
+  "Legumes Grelhados": { calories: 170, carbs: 23, protein: 4, fat: 6, fiber: 3.5 },
+  "Brócolis Defumado": { calories: 175, carbs: 22, protein: 7, fat: 6, fiber: 3.5 },
+  "Margherita Vegana": { calories: 180, carbs: 23, protein: 5, fat: 7, fiber: 2.5 },
+  "Mussarela GF": { calories: 195, carbs: 24, protein: 9, fat: 8, fiber: 1.5 },
+  "Calabresa GF": { calories: 220, carbs: 24, protein: 9, fat: 11, fiber: 1.5 },
+  "Quatro Queijos GF": { calories: 240, carbs: 23, protein: 11, fat: 13, fiber: 1 },
+  "Frango com Catupiry GF": { calories: 215, carbs: 23, protein: 12, fat: 10, fiber: 1 },
+  "Alcachofra GF": { calories: 205, carbs: 24, protein: 9, fat: 9, fiber: 2.5 },
+  "Banana & Canela": { calories: 155, carbs: 27, protein: 2, fat: 4, fiber: 2 },
+  "Romeu & Julieta": { calories: 185, carbs: 28, protein: 4, fat: 6, fiber: 1 },
+  "Nutella & Morango": { calories: 220, carbs: 31, protein: 3, fat: 9, fiber: 2 },
+  Brigadeiro: { calories: 210, carbs: 30, protein: 3, fat: 8, fiber: 1.5 },
+  "Avelã & Chocolate Branco": { calories: 225, carbs: 31, protein: 3, fat: 10, fiber: 1.5 },
+};
+
+const categoryDescriptions: Record<PizzaCategory, string> = {
+  Tradicionais: "Uma receita clássica, assada na hora sobre massa artesanal e pensada para dividir.",
+  Especiais: "Uma combinação autoral de ingredientes selecionados para quem quer experimentar algo marcante.",
+  Veganas: "Uma receita inteiramente vegetal, com sabor e textura construídos a partir de ingredientes frescos.",
+  "Sem glúten": "Uma massa especial feita com ingredientes sem glúten, preparada para uma experiência mais inclusiva.",
+  Doces: "Uma pizza brotinho para encerrar a refeição com uma combinação doce e afetiva.",
+};
+
+const allergensFor = (pizza: BasePizza) => {
+  if (pizza.category === "Veganas") return ["Glúten"];
+  if (pizza.category === "Sem glúten") return ["Leite"];
+  if (pizza.category === "Doces")
+    return pizza.name === "Banana & Canela" ? ["Glúten"] : ["Glúten", "Leite"];
+  const allergens = ["Glúten", "Leite"];
+  if (["Portuguesa", "Baiana"].includes(pizza.name)) allergens.push("Ovos");
+  return allergens;
+};
+
+const ingredientsFor = (pizza: BasePizza) => {
+  const base = pizza.category === "Sem glúten" ? "Massa especial sem glúten" : "Massa artesanal";
+  return [base, ...pizza.ingredients.replace(/\.$/, "").split(/, | e /)];
+};
+
+import { slugifyPizza } from "@/lib/pizza-utils.mjs";
+
+export const pizzas: Pizza[] = basePizzas.map((pizza) => ({
+  ...pizza,
+  slug: slugifyPizza(pizza.name),
+  description: `${categoryDescriptions[pizza.category]} ${pizza.name} traz ${pizza.ingredients.toLowerCase()}`,
+  slices: pizza.category === "Doces" ? 4 : pizza.category === "Sem glúten" ? 6 : 8,
+  detailedIngredients: ingredientsFor(pizza),
+  allergens: allergensFor(pizza),
+  traceWarning:
+    "Produzido em cozinha que também manipula trigo, leite, ovos, castanhas e outros alergênicos. Confirme a composição com a equipe antes de pedir.",
+  nutrition: nutritionByPizza[pizza.name],
+}));

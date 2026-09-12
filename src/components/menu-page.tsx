@@ -148,6 +148,9 @@ function PizzaCard({ pizza }: { pizza: Pizza }) {
         <div className="pizza-card-top"><h4>{pizza.name}</h4><b>{price(pizza)}</b></div>
         <p>{pizza.ingredients}</p>
         <small>{pizza.portion}</small>
+        <a className="pizza-details-link" href={`/cardapio/${pizza.slug}`}>
+          Ver detalhes <ChevronRight size={14} />
+        </a>
       </CardContent>
     </Card>
   );

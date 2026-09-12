@@ -63,10 +63,11 @@ const server = http.createServer(async (req, res) => {
       req.method === "GET" &&
       (url.pathname === "/" ||
         url.pathname === "/cardapio" ||
+        /^\/cardapio\/[a-z0-9-]+$/.test(url.pathname) ||
         /^\/assets\/[a-zA-Z0-9._-]+$/.test(url.pathname))
     ) {
       const file =
-        url.pathname === "/" || url.pathname === "/cardapio"
+        url.pathname === "/" || url.pathname.startsWith("/cardapio/") || url.pathname === "/cardapio"
           ? "index.html"
           : url.pathname.slice(1);
       const contents = await readFile(

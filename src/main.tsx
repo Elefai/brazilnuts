@@ -40,6 +40,7 @@ import { Slider } from "@/components/ui/slider";
 import "./index.css";
 import { CampaignPanel } from "./components/campaign-panel";
 import { MenuPage } from "./components/menu-page";
+import { PizzaDetailPage } from "./components/pizza-detail-page";
 
 const time = (n: number) =>
   new Date(n).toLocaleTimeString("pt-BR", {
@@ -721,6 +722,8 @@ function App() {
     </SidebarProvider>
   );
 }
+const path = window.location.pathname;
+const cardapioSlug = path.match(/^\/cardapio\/([a-z0-9-]+)$/)?.[1];
 createRoot(document.getElementById("root")!).render(
-  window.location.pathname === "/cardapio" ? <MenuPage /> : <App />,
+  path === "/cardapio" ? <MenuPage /> : cardapioSlug ? <PizzaDetailPage slug={cardapioSlug} /> : <App />,
 );
