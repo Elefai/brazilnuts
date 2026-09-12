@@ -122,11 +122,14 @@ export function CampaignPanel({
               </Button>
               <Button
                 variant="outline"
-                disabled={busy || s.agent?.busy}
+                role="switch"
+                aria-checked={autopilot}
+                aria-label="Agente de campanhas ativo"
+                disabled={busy}
                 onClick={toggleAuto}
               >
                 <Bot size={14} />
-                {s.agent?.autoEnabled ? "Desativar piloto" : "Ativar piloto"}
+                {s.agent?.autoEnabled ? "● Agente ativo" : "○ Agente inativo"}
               </Button>
             </div>
             <div className="agent-disclaimer">

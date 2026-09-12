@@ -11,13 +11,13 @@ async function setup() {
   const m = e.messages.find((m) => m.customerId === "demo-1");
   return { e, m, tick: (n) => (now += n) };
 }
-test("deadline begins on opening, survives reopening and rejects at 30 seconds", async () => {
+test("deadline begins on opening, survives reopening and rejects at 5 seconds", async () => {
   const { e, m, tick } = await setup();
   tick(60000);
   assert.equal(m.acceptBy, undefined);
   e.command("open-notification", { messageId: m.id, customerId: m.customerId });
   const end = m.acceptBy;
-  tick(29000);
+  tick(4000);
   e.command("open-notification", { messageId: m.id, customerId: m.customerId });
   assert.equal(m.acceptBy, end);
   tick(1000);
@@ -29,7 +29,7 @@ test("deadline begins on opening, survives reopening and rejects at 30 seconds",
         customerId: m.customerId,
         messageId: m.id,
       }),
-    /30 segundos/,
+    /5 segundos/,
   );
   assert.equal(e.stock, 5);
   assert.equal(e.coupons.length, 0);
@@ -37,7 +37,7 @@ test("deadline begins on opening, survives reopening and rejects at 30 seconds",
 test("accept before deadline buys and starts separate arrival window", async () => {
   const { e, m, tick } = await setup();
   e.command("open-notification", { messageId: m.id, customerId: m.customerId });
-  tick(29999);
+  tick(4999);
   const c = e.command("buy", {
     key: crypto.randomUUID(),
     version: e.version,

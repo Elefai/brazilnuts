@@ -56,7 +56,7 @@ function App() {
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
     [token, setToken] = useState(""),
-    [tab, setTab] = useState("Visão geral");
+    [tab, setTab] = useState("Demonstração");
   const [draft, setDraft] = useState<number | null>(null),
     [quote, setQuote] = useState<any>(null);
   const [customerId, setCustomerId] = useState("demo-1"),
@@ -65,6 +65,14 @@ function App() {
   const busyRef = useRef(false),
     keyRef = useRef(crypto.randomUUID()),
     agentPollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (s?.simulation?.enabled && s.simulation.customerId) {
+      setCustomerId(s.simulation.customerId);
+      setSelected(null);
+      setQuote(null);
+      keyRef.current=crypto.randomUUID();
+    }
+  }, [s?.simulation?.enabled, s?.simulation?.customerId]);
   useEffect(() => {
     let active = true;
     const poll = async () => {
@@ -152,9 +160,9 @@ function App() {
   };
   const jump = (label: string, id: string) => {
     setTab(label);
-    document
+    requestAnimationFrame(() => document
       .getElementById(id)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      ?.scrollIntoView({ behavior: "smooth", block: "start" }));
   };
   const pollCampaign = async (runId: string, attempt = 0) => {
     try {
@@ -224,11 +232,12 @@ function App() {
             <SidebarGroupLabel>WORKSPACE</SidebarGroupLabel>
             <SidebarMenu>
               {[
-                [LayoutDashboard, "Visão geral", "overview"],
+                [LayoutDashboard, "Demonstração", "overview"],
                 [Utensils, "Comandas", "floor"],
-                [Ticket, "Cupons e clientes", "reception"],
-                [Sparkles, "Assistente", "agent"],
-                [BarChart3, "Resultados", "results"],
+                [Ticket, "Recepção", "reception"],
+                [Sparkles, "Agentes", "agent"],
+                [BarChart3, "Dashboard", "results"],
+                [Clock, "Logs", "activity-log"],
               ].map(([Icon, label, id]: any) => (
                 <SidebarMenuItem key={label}>
                   <SidebarMenuButton
@@ -275,7 +284,7 @@ function App() {
             <i /> Simulação ao vivo
           </Badge>
         </header>
-        <main id="overview" className="workspace">
+        <main id="overview" className="workspace" data-view={tab}>
           <div className="page-heading">
             <div>
               <p className="eyebrow">DO MOVIMENTO À OPORTUNIDADE</p>
@@ -532,6 +541,8 @@ function App() {
                   </div>
                   <MessageCircle size={19} />
                 </div>
+                <Button role="switch" aria-checked={!!s.simulation?.enabled} onClick={()=>command('simulation',{enabled:!s.simulation?.enabled})}>{s.simulation?.enabled?'Pausar simulação':'Iniciar simulação'}</Button>
+                <p className="simulation-note">Um cliente por vez: recebe, abre e aceita, recusa ou deixa os 5 segundos da demo vencerem. Mesas mudam a cada 90 segundos. Ao pausar, os prazos e o agente continuam ativos.</p>
                 <div className="phone">
                   <select
                     className="customer-select"
@@ -597,8 +608,8 @@ function App() {
                         Aguardando uma nova notificação do restaurante.
                       </div>
                     )}
-                    {message?.openedAt !== undefined && (
-                      <div className="message">{message.text}</div>
+                    {message?.openedAt !== undefined && !coupon && !message.rejectedAt && (
+                      <div className="message">Uma mesa te espera! Confira a oferta abaixo.</div>
                     )}
                     {coupon ? (
                       <div className="ticket">
@@ -628,13 +639,13 @@ function App() {
                           variant="outline"
                           onClick={() => {
                             setToken(coupon.token);
-                            jump("Cupons e clientes", "reception");
+                            jump("Recepção", "reception");
                           }}
                         >
                           Apresentar na recepção
                         </Button>
                       </div>
-                    ) : message?.openedAt !== undefined ? (
+                    ) : message?.rejectedAt !== undefined ? (<div className="mobile-offer"><h3>Oferta recusada</h3><p>Aguarde um novo convite.</p></div>) : message?.openedAt !== undefined ? (
                       <div className="mobile-offer">
                         <div className="accept-timer" role="timer">
                           {seconds > 0
@@ -664,13 +675,6 @@ function App() {
                             <Ticket size={13} /> Desconto sobre até R$ 100
                           </p>
                         </div>
-                        {quote && (
-                          <div className="checkout">
-                            Confirmar compra fictícia de R$ 5 com{" "}
-                            <b>{quote.discount}% OFF</b>? Oferta sujeita à
-                            disponibilidade no momento da confirmação.
-                          </div>
-                        )}
                         <Button
                           className="buy"
                           disabled={busy || !s.available || seconds === 0}
@@ -681,6 +685,7 @@ function App() {
                             : "Oferta expirada"}{" "}
                           <ArrowUpRight size={15} />
                         </Button>
+                        <Button variant="outline" disabled={busy || seconds === 0} onClick={()=>command('reject-notification',{messageId:message.id,customerId})}>Recusar oferta</Button>
                         <small className="terms">
                           1 cupom por mesa, em itens elegíveis. Não cumulativo.
                           Expirou: estorno fictício dos R$ 5. Nenhuma cobrança
@@ -691,7 +696,7 @@ function App() {
                       <div className="notification-wait">
                         <Clock size={24} />
                         <p>
-                          Você tem 30 segundos para aceitar depois de abrir a
+                          Você tem 5 segundos para aceitar depois de abrir a
                           notificação.
                         </p>
                       </div>
@@ -792,13 +797,14 @@ function App() {
                 command("agent-auto", { enabled: !s.agent?.autoEnabled })
               }
               select={(id) => {
+                setTab("Demonstração");
                 setCustomerId(id);
                 setSelected(null);
                 setQuote(null);
                 keyRef.current = crypto.randomUUID();
-                document
+                requestAnimationFrame(() => document
                   .querySelector(".client-card")
-                  ?.scrollIntoView({ behavior: "smooth" });
+                  ?.scrollIntoView({ behavior: "smooth" }));
               }}
             />
             <Card id="exa-agent" className="agent-card">
@@ -887,7 +893,7 @@ function App() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card id="activity-log">
               <CardContent>
                 <div className="panel-title">
                   <h2>Atividade ao vivo</h2>

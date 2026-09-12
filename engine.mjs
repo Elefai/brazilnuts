@@ -129,7 +129,14 @@ export class Engine {
         throw new Error(
           "Quantidade inválida ou capacidade reservada para clientes a caminho.",
         );
-      this.tables = this.tables.map((_, i) => i < p.value);
+      // Scatter guests across the floor instead of filling numbered rows.
+      const positions = this.tables.map((_, i) => i);
+      for (let i = positions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [positions[i], positions[j]] = [positions[j], positions[i]];
+      }
+      const occupied = new Set(positions.slice(0, p.value));
+      this.tables = this.tables.map((_, i) => occupied.has(i));
       this.log("Movimento atualizado", `${p.value} mesas com comanda aberta`);
     } else if (type === "table") {
       if (!Number.isInteger(p.index) || p.index < 0 || p.index >= 100)
@@ -155,9 +162,19 @@ export class Engine {
       if (!message) throw new Error("Notificação não encontrada.");
       if (message.openedAt === undefined) {
         message.openedAt = this.now();
-        message.acceptBy = this.now() + 30000;
+        message.acceptBy = this.now() + 5000;
         message.offerVersion = this.version;
         message.offerDiscount = before.discount;
+      }
+      return { notification: message };
+    } else if (type === "reject-notification") {
+      const message = this.messages.find(m => m.id === p.messageId && m.customerId === p.customerId);
+      if (!message || message.openedAt === undefined) throw new Error("Abra a notificação primeiro.");
+      if (this.coupons.some(c => c.customerId === p.customerId && c.status === "active")) throw new Error("Cupom já comprado.");
+      if (this.now() >= message.acceptBy) throw new Error("Oferta expirada.");
+      if (!message.rejectedAt) {
+        message.rejectedAt = this.now();
+        this.log("Oferta recusada", p.customerId);
       }
       return { notification: message };
     } else if (type === "buy") {
@@ -171,9 +188,10 @@ export class Engine {
         );
         if (!notification || notification.openedAt === undefined)
           throw new Error("Abra a notificação antes de aceitar.");
+        if (notification.rejectedAt !== undefined) throw new Error("Oferta recusada.");
         if (this.now() >= notification.acceptBy)
           throw new Error(
-            "Os 30 segundos para aceitar terminaram. Aguarde um novo convite.",
+            "Os 5 segundos para aceitar terminaram. Aguarde um novo convite.",
           );
         if (notification.offerVersion !== p.version)
           throw new Error("Oferta inválida para esta notificação.");

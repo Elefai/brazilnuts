@@ -1,4 +1,5 @@
 import http from "node:http";
+import { Simulation } from './simulation.mjs';
 import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import QRCode from "qrcode";
@@ -18,9 +19,10 @@ try {
 }
 const engine = new Engine();
 const agent = new CampaignAgent(engine);
-const snapshot = () => ({ ...engine.snapshot(), agent: agent.snapshot() });
+const simulation = new Simulation(engine);
+const snapshot = () => ({ ...engine.snapshot(), agent: agent.snapshot(), simulation: simulation.snapshot() });
 const concierge = new Concierge(engine,agent);
-const conciergeTimer=setInterval(()=>{concierge.tick().catch(error=>agent.recordAutoFailure(error));},1000);
+const conciergeTimer=setInterval(()=>{simulation.tick();concierge.tick().catch(error=>agent.recordAutoFailure(error));},1000);
 conciergeTimer.unref();
 const campaignRuns = new Map();
 const mime = {
@@ -151,6 +153,11 @@ const server = http.createServer(async (req, res) => {
           return json(413, { error: "Requisição muito grande" });
       }
       const { type, ...payload } = JSON.parse(body);
+      if (type === "simulation") {
+        if (typeof payload.enabled !== "boolean") throw new Error("Estado inválido.");
+        simulation.set(payload.enabled);
+        return json(200, {state:snapshot()});
+      }
       if (type === "agent") {
         const decision = await agent.run();
         return json(200, { decision, state: snapshot() });
@@ -162,7 +169,7 @@ const server = http.createServer(async (req, res) => {
         return json(200, { state: snapshot() });
       }
       const result = engine.command(type, payload);
-      if (type === "reset") {agent.reset();concierge.reset();}
+      if (type === "reset") {agent.reset();concierge.reset();simulation.set(false);simulation.elapsed=0;simulation.seen.clear();simulation.current=null;}
       return json(200, { ...result, state: snapshot() });
     }
     if (
